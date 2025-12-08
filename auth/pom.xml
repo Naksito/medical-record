@@ -17,33 +17,39 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <maven.compiler.release>17</maven.compiler.release>
-        <grpc.version>${grpc.version}</grpc.version>
-        <protobuf.version>${protobuf.version}</protobuf.version>
     </properties>
 
     <dependencies>
+
         <!-- gRPC -->
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
         </dependency>
+
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-protobuf</artifactId>
         </dependency>
+
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty-shaded</artifactId>
         </dependency>
+
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-stub</artifactId>
         </dependency>
+
         <dependency>
             <groupId>javax.annotation</groupId>
             <artifactId>javax.annotation-api</artifactId>
         </dependency>
+
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-services</artifactId>
@@ -54,25 +60,29 @@
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
         </dependency>
+
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
         </dependency>
+
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Bcrypt -->
+        <!-- BCrypt -->
         <dependency>
             <groupId>org.mindrot</groupId>
             <artifactId>jbcrypt</artifactId>
         </dependency>
+
     </dependencies>
 
     <build>
 
+        <!-- OS detection for protoc -->
         <extensions>
             <extension>
                 <groupId>kr.motd.maven</groupId>
@@ -83,7 +93,7 @@
 
         <plugins>
 
-            <!-- FIX: Force Java 17 to override protoc Java 5 default -->
+            <!-- 🔥 MUST COME FIRST — This fixes Java 5 issue -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -95,7 +105,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Protobuf / gRPC Codegen -->
+            <!-- gRPC / Protobuf Code Generation -->
             <plugin>
                 <groupId>org.xolstice.maven.plugins</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>
@@ -120,10 +130,11 @@
                 </executions>
             </plugin>
 
-            <!-- Fat JAR + Main class -->
+            <!-- Create executable JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
+                <version>${maven.shade.version}</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -144,7 +155,6 @@
             </plugin>
 
         </plugins>
-
     </build>
 
 </project>
