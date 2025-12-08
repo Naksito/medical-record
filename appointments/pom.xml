@@ -39,6 +39,7 @@
       <version>${postgres.version}</version>
     </dependency>
 
+    <!-- gRPC + protobuf -->
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
@@ -81,7 +82,7 @@
 
     <plugins>
 
-      <!-- 🔥 FIX: Force Java 17 compilation for THIS MODULE -->
+      <!-- 🔥 REQUIRED FIX: FORCE JAVA 17 COMPILER -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -93,7 +94,7 @@
         </configuration>
       </plugin>
 
-      <!-- Existing protobuf plugin -->
+      <!-- protobuf plugin -->
       <plugin>
         <groupId>org.xolstice.maven.plugins</groupId>
         <artifactId>protobuf-maven-plugin</artifactId>
@@ -118,7 +119,7 @@
         </executions>
       </plugin>
 
-      <!-- Existing shade plugin -->
+      <!-- shade plugin -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
@@ -134,7 +135,7 @@
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <mainClass>com.medrec.Main</mainClass>
                 </transformer>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
               </transformers>
             </configuration>
           </execution>
