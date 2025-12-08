@@ -6,8 +6,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>medical-record</artifactId>
         <groupId>com.medrec</groupId>
+        <artifactId>medical-record</artifactId>
         <version>1.0.0</version>
     </parent>
 
@@ -60,12 +60,10 @@
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
         </dependency>
-
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
         </dependency>
-
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
@@ -82,7 +80,6 @@
 
     <build>
 
-        <!-- OS detection for protoc -->
         <extensions>
             <extension>
                 <groupId>kr.motd.maven</groupId>
@@ -93,7 +90,7 @@
 
         <plugins>
 
-            <!-- 🔥 MUST COME FIRST — This fixes Java 5 issue -->
+            <!-- 🔥 FIX: FORCE MAVEN TO USE JAVA 17 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -105,7 +102,7 @@
                 </configuration>
             </plugin>
 
-            <!-- gRPC / Protobuf Code Generation -->
+            <!-- Protobuf / gRPC Code Generation -->
             <plugin>
                 <groupId>org.xolstice.maven.plugins</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>
@@ -130,7 +127,7 @@
                 </executions>
             </plugin>
 
-            <!-- Create executable JAR -->
+            <!-- Shaded runnable JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -138,16 +135,14 @@
                 <executions>
                     <execution>
                         <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
+                        <goals><goal>shade</goal></goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>com.medrec.Main</mainClass>
                                 </transformer>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>
                         </configuration>
                     </execution>
