@@ -1,13 +1,21 @@
-<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
+
   <groupId>com.medrec</groupId>
   <artifactId>medical-record</artifactId>
   <version>1.0.0</version>
   <packaging>pom</packaging>
+
   <name>medical-record</name>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
+
     <!-- Dependency versions -->
     <hibernate.version>6.6.4.Final</hibernate.version>
     <postgres.version>42.7.5</postgres.version>
@@ -18,28 +26,33 @@
     <jwt.version>0.11.5</jwt.version>
     <bcrypt.version>0.4</bcrypt.version>
   </properties>
-  <!-- Define all dependencies that child modules can use -->
+
+  <!-- Define dependencies available to child modules -->
   <dependencyManagement>
     <dependencies>
+
       <!-- Hibernate ORM -->
       <dependency>
         <groupId>org.hibernate.orm</groupId>
         <artifactId>hibernate-core</artifactId>
         <version>${hibernate.version}</version>
       </dependency>
-      <!-- PostgreSQL Driver -->
+
+      <!-- PostgreSQL driver -->
       <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
         <version>${postgres.version}</version>
       </dependency>
-      <!-- Protobuf Dependency -->
+
+      <!-- Protobuf -->
       <dependency>
         <groupId>com.google.protobuf</groupId>
         <artifactId>protobuf-java</artifactId>
         <version>${protobuf.version}</version>
       </dependency>
-      <!-- gRPC Dependencies -->
+
+      <!-- gRPC -->
       <dependency>
         <groupId>io.grpc</groupId>
         <artifactId>grpc-netty-shaded</artifactId>
@@ -60,12 +73,14 @@
         <artifactId>grpc-services</artifactId>
         <version>${grpc.version}</version>
       </dependency>
-      <!-- Used by gRPC -->
+
+      <!-- Javax annotation -->
       <dependency>
         <groupId>javax.annotation</groupId>
         <artifactId>javax.annotation-api</artifactId>
         <version>1.2</version>
       </dependency>
+
       <!-- Spring Boot -->
       <dependency>
         <groupId>org.springframework.boot</groupId>
@@ -77,6 +92,7 @@
         <artifactId>spring-boot</artifactId>
         <version>${spring.boot.version}</version>
       </dependency>
+
       <!-- JWT -->
       <dependency>
         <groupId>io.jsonwebtoken</groupId>
@@ -95,15 +111,18 @@
         <version>${jwt.version}</version>
         <scope>runtime</scope>
       </dependency>
-      <!-- Bcrypt -->
+
+      <!-- BCrypt -->
       <dependency>
         <groupId>org.mindrot</groupId>
         <artifactId>jbcrypt</artifactId>
         <version>${bcrypt.version}</version>
       </dependency>
+
     </dependencies>
   </dependencyManagement>
 
+  <!-- Global test dependency -->
   <dependencies>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -116,25 +135,42 @@
   <build>
     <pluginManagement>
       <plugins>
-        <!-- This plugin is used to package the Spring Boot API gateway, with all of its additional resource files into a jar -->
+
+        <!-- 🔥 GLOBAL FIX: Force Java 17 Compiler for ALL modules -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.11.0</version>
+          <configuration>
+            <source>17</source>
+            <target>17</target>
+            <release>17</release>
+          </configuration>
+        </plugin>
+
+        <!-- For API module -->
         <plugin>
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-maven-plugin</artifactId>
           <version>${spring.boot.version}</version>
         </plugin>
-        <!-- This plugin is used to package the Jars for all other services except for the API, singe Spring Boot needs custom dependencies -->
+
+        <!-- For gRPC services -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
           <version>${maven.shade.version}</version>
         </plugin>
+
       </plugins>
     </pluginManagement>
   </build>
+
   <modules>
     <module>api</module>
     <module>auth</module>
     <module>users</module>
     <module>appointments</module>
   </modules>
+
 </project>
