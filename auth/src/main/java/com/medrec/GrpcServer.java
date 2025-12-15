@@ -5,6 +5,7 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.health.v1.HealthCheckResponse;
 import io.grpc.protobuf.services.HealthStatusManager;
+import io.grpc.protobuf.services.ProtoReflectionService;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -23,6 +24,7 @@ public class GrpcServer {
             .executor(executor)
             .addService(AuthService.getInstance())
             .addService(healthStatusManager.getHealthService())
+            .addService(ProtoReflectionService.newInstance())
             .build();
 
         healthStatusManager.setStatus("auth-service", HealthCheckResponse.ServingStatus.SERVING);
