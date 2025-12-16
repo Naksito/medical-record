@@ -2,23 +2,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: appointments-service
+  name: appointments
   namespace: medical-record
   labels:
-    app: appointments-service
+    app: appointments
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: appointments-service
+      app: appointments
   template:
     metadata:
       labels:
-        app: appointments-service
+        app: appointments
     spec:
       containers:
-      - name: appointments-service
-        image: docker.io/todorpopov02/appointments-service:latest
+      - name: appointments
+        image: docker.io/naksito03/appointments:latest
         imagePullPolicy: Always
         ports:
           - containerPort: 9092
@@ -61,11 +61,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: appointments-service
+  name: appointments
   namespace: medical-record
 spec:
   selector:
-    app: appointments-service
+    app: appointments
   ports:
     - port: 9092
       targetPort: 9092

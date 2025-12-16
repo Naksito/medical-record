@@ -2,23 +2,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-service
+  name: auth
   namespace: medical-record
   labels:
-    app: auth-service
+    app: auth
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: auth-service
+      app: auth
   template:
     metadata:
       labels:
-        app: auth-service
+        app: auth
     spec:
       containers:
-        - name: auth-service
-          image: docker.io/todorpopov02/auth-service:latest
+        - name: auth
+          image: docker.io/naksito03/auth:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 9091
@@ -61,11 +61,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: auth-service
+  name: auth
   namespace: medical-record
 spec:
   selector:
-    app: auth-service
+    app: auth
   ports:
     - port: 9091
       targetPort: 9091

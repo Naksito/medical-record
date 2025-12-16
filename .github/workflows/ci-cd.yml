@@ -38,10 +38,10 @@ jobs:
 
       - name: Build and push auth image
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest ./auth
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest
+          docker build -t naksito03/auth:latest ./auth
+          docker push naksito03/auth:latest
 
       - name: Build and push api image
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/api-service:latest ./api
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/api-service:latest
+          docker build -t naksito03/api:latest ./api
+          docker push naksito03/api:latest

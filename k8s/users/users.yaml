@@ -2,23 +2,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: users-service
+  name: users
   namespace: medical-record
   labels:
-    app: users-service
+    app: users
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: users-service
+      app: users
   template:
     metadata:
       labels:
-        app: users-service
+        app: users
     spec:
       containers:
-      - name: users-service
-        image: docker.io/todorpopov02/users-service:latest
+      - name: users
+        image: docker.io/naksito03/users:latest
         imagePullPolicy: Always
         ports:
           - containerPort: 9090
@@ -57,11 +57,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: users-service
+  name: users
   namespace: medical-record
 spec:
   selector:
-    app: users-service
+    app: users
   ports:
     - port: 9090
       targetPort: 9090
