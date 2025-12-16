@@ -114,23 +114,36 @@
   </dependencies>
 
   <build>
-    <pluginManagement>
-      <plugins>
-        <!-- This plugin is used to package the Spring Boot API gateway, with all of its additional resource files into a jar -->
-        <plugin>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-maven-plugin</artifactId>
-          <version>${spring.boot.version}</version>
-        </plugin>
-        <!-- This plugin is used to package the Jars for all other services except for the API, singe Spring Boot needs custom dependencies -->
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-shade-plugin</artifactId>
-          <version>${maven.shade.version}</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
+  <pluginManagement>
+    <plugins>
+
+      <!-- REQUIRED: Force Java 17 for ALL modules -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+          <release>17</release>
+        </configuration>
+      </plugin>
+
+      <!-- Spring Boot plugin (API gateway only uses this) -->
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>${spring.boot.version}</version>
+      </plugin>
+
+      <!-- Shade plugin for gRPC services -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>${maven.shade.version}</version>
+      </plugin>
+
+    </plugins>
+  </pluginManagement>
+</build>
   <modules>
     <module>api</module>
     <module>auth</module>

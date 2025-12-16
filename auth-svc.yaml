@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app":"auth"},"name":"auth","namespace":"default"},"spec":{"ports":[{"name":"grpc","port":8081,"protocol":"TCP","targetPort":8081}],"selector":{"app":"auth"}}}
+  creationTimestamp: "2025-12-07T14:23:43Z"
+  labels:
+    app: auth
+  name: auth
+  namespace: default
+  resourceVersion: "339377"
+  uid: 738a918e-291b-4948-ae6c-a2d4cab76391
+spec:
+  clusterIP: 10.43.242.84
+  clusterIPs:
+  - 10.43.242.84
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: grpc
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: auth
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

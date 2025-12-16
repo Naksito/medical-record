@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: api-service
-          image: docker.io/todorpopov02/api-service:latest
+          image: docker.io/naksito03/api-service:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
