@@ -1,0 +1,61 @@
+name: CI-CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Java 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # Step 3: Build all Maven modules
+      - name: Build with Maven
+        run: mvn -B clean install -DskipTests
+
+      # Step 4: Log in to Docker Hub
+      - name: Docker login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Step 5: Build & push Auth service image
+      - name: Build & push auth image
+        run: |
+          cd auth
+          docker build -t naksito03/auth-service:latest .
+          docker push naksito03/auth-service:latest
+
+      # Step 6: Build & push Users service image
+      - name: Build & push users image
+        run: |
+          cd users
+          docker build -t naksito03/users-service:latest .
+          docker push naksito03/users-service:latest
+
+      # Step 7: Build & push Appointments service image
+      - name: Build & push appointments image
+        run: |
+          cd appointments
+          docker build -t naksito03/appointments-service:latest .
+          docker push naksito03/appointments-service:latest
+
+      # Step 8: Build & push API gateway image
+      - name: Build & push api image
+        run: |
+          cd api
+          docker build -t naksito03/api-service:latest .
+          docker push naksito03/api-service:latest
