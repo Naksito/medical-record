@@ -76,7 +76,7 @@
 
     <plugins>
 
-      <!-- 🔥 REQUIRED FIX: Force Java 17 compiler -->
+      <!-- REQUIRED FIX: Force Java 17 compiler -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
