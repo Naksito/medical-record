@@ -71,3 +71,4 @@ ensure secure auth for their applications. Implementing my own auth brings nothi
 it. In this particular case, the system is not going to ever be used in a production setting with real users, so
 proper security is not of upmost importance. Still, to follow best practices, I have decided to set the expiration
 of the JWT tokens to only 60 minutes, to minimize the chance of cross-site request forgery (CSRF) attacks.test
+test
