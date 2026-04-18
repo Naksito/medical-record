@@ -20,4 +20,4 @@ jobs:
       # 3. Build Docker image (auth service example)
       - name: Build Docker image (auth)
         run: |
-          docker build -t auth-service:latest ./auth
+          docker build -t auth-service:latest -f auth/Dockerfile auth
