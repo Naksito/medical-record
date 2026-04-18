@@ -136,7 +136,7 @@
     <pluginManagement>
       <plugins>
 
-        <!-- 🔥 GLOBAL FIX: Force Java 17 Compiler for ALL modules -->
+        <!-- GLOBAL FIX: Force Java 17 Compiler for ALL modules -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>

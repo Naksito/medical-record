@@ -90,7 +90,7 @@
 
         <plugins>
 
-            <!-- 🔥 FIX: FORCE MAVEN TO USE JAVA 17 -->
+            <!-- FIX: FORCE MAVEN TO USE JAVA 17 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

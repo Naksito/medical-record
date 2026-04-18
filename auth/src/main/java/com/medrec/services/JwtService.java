@@ -17,7 +17,16 @@ public class JwtService {
     private final Logger logger = Logger.getLogger(JwtService.class.getName());
 
     private final String secret = System.getenv("JWT_SECRET");
-    private final Key key = Keys.hmacShaKeyFor(secret.getBytes());
+    private final Key key;
+
+    private JwtService() {
+	String secret = System.getenv("JWT_SECRET");
+
+	if (secret == null || secret.length() < 32) {
+	    throw new IllegalStateException("JWT_SECRET is missing or too weak (must be >= 32 chars)");
+	}
+
+	this.key = Keys.hmac.ShaKeyFor(secret.getBytes());
     private final long tokenValidityMs = 1000 * 60 * 60;
 
     private JwtService() {}
