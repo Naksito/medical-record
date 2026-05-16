@@ -1,0 +1,18 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: users
+          uri: http://users-service:9090
+          predicates:
+            - Path=/users/**
+
+        - id: auth
+          uri: http://auth-service:9091
+          predicates:
+            - Path=/auth/**
+
+        - id: appointments
+          uri: http://appointments-service:9092
+          predicates:
+            - Path=/appointments/**

@@ -5,7 +5,7 @@ FROM amazoncorretto:17-alpine AS packager
 
 WORKDIR /opt
 
-COPY /target/users-1.0.0.jar app.jar
+COPY users/target/users-1.0.0.jar app.jar
 
 # Show all needed modules for the .jar file and pipe them into a text file
 RUN jdeps --print-module-deps --ignore-missing-deps app.jar > deps.txt

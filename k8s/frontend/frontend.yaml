@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: frontend-service
-          image: docker.io/todorpopov02/frontend-service:latest
+          image: naksito03/frontend-service:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80

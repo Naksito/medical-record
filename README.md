@@ -47,28 +47,30 @@ Here is an image of what the system's architecture looks like
 ## Architecture Q&A
 
 ### Why microservices architecture?
-There is no better reason for opting for microservices, than learning purposes. A monolithic architecture would be
-much more appropriate for a small-scale project like this one. My intention behind the microservices was not to
-create a system optimized for scaling, but rather learn more about distributed systems in general.
+The system is designed using a microservices architecture to achieve modularity and separation of concerns. Each service is responsible for a specific business domain, such as authentication, user management, or appointment scheduling.
+This approach allows independent development, testing, and deployment of components, and reduces coupling between different parts of the system. While a monolithic architecture would be simpler, the microservices approach better demonstrates distributed system design principles and aligns with modern software engineering practices.
 
-### Why use different means of communication, and not stick to simple RESTful APIs?
-The reasons to include multiple means of network communication are two. First, again to expose myself to new,
-modern technologies with the intention of learning more about them. Two, optimize inter-service communication for
-performance and end-user experience. An HTTP request that bounces from service to service might take a significant amount
-of time, depending on the headers and body size. Additionally, any database IO operations that a service might need
-to perform, to fulfil the request will add more time overhead. To solve this, I've decided to build the
-inter-service communication entirely on Remote Procedure Calls. RPC is 5/6 times faster than JSON, due to the binary
-serialization and deserialization.
+###Why use multiple communication mechanisms instead of only REST?
+The system uses a combination of REST and remote procedure calls to match different communication needs.
+REST is used for external communication between the frontend and backend, as it is simple, widely supported, and well-suited for client-server interaction.
+For internal service-to-service communication, a more efficient binary communication mechanism is used. This reduces serialization overhead and improves performance compared to text-based formats.
+This separation improves both usability at the system boundary and efficiency inside the system.
 
-### Why use Kubernetes?
-My best option would have been to use Docker Compose for defining and running multiple Docker containers for each
-of the services. However, Kubernetes is the de-facto standard for deploying and orchestrating distributed systems.
-The point of using a Kubernetes cluster is mainly for learning purposes.
+###Why use Kubernetes?
+The system is deployed using a container orchestration platform to ensure consistent execution of multiple independent services.
+This approach provides:
+automated service management
+isolation between components
+simplified deployment of distributed systems
+improved reliability through self-recovery mechanisms
+Although simpler tools exist for small systems, this approach reflects how distributed applications are managed in production environments.
 
-### Why use my own auth?
-Proper authentication and authorization are notoriously hard to implement. Many companies use third-party tools to
-ensure secure auth for their applications. Implementing my own auth brings nothing more than learning more about
-it. In this particular case, the system is not going to ever be used in a production setting with real users, so
-proper security is not of upmost importance. Still, to follow best practices, I have decided to set the expiration
-of the JWT tokens to only 60 minutes, to minimize the chance of cross-site request forgery (CSRF) attacks.test
-test
+###Why implement a custom authentication service?
+Authentication is implemented as a separate service to maintain clear separation of concerns and to integrate it as part of the system architecture rather than relying on external providers.
+The goal of this component is to demonstrate how authentication flows can be designed and integrated within a distributed system.
+For security reasons, token-based authentication is used with limited validity to reduce risk exposure in case of token leakage.
+
+###Why use a microservices-based design for a relatively small system?
+Although microservices are typically used in large-scale systems, this design was chosen to demonstrate architectural principles of distributed systems, including service decomposition, communication patterns, and independent deployment.
+The trade-off is increased system complexity compared to a monolithic architecture, but this is acceptable in the context of an academic project focused on system design rather than operational simplicity.
+test CI trigger

@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: appointments-service
-        image: docker.io/todorpopov02/appointments-service:latest
+        image: naksito03/appointments-service:latest
         imagePullPolicy: Always
         ports:
           - containerPort: 9092

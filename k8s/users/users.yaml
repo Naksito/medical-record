@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: users-service
-        image: docker.io/todorpopov02/users-service:latest
+        image: naksito03/users-service:latest
         imagePullPolicy: Always
         ports:
           - containerPort: 9090
