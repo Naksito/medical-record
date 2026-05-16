@@ -74,3 +74,4 @@ For security reasons, token-based authentication is used with limited validity t
 Although microservices are typically used in large-scale systems, this design was chosen to demonstrate architectural principles of distributed systems, including service decomposition, communication patterns, and independent deployment.
 The trade-off is increased system complexity compared to a monolithic architecture, but this is acceptable in the context of an academic project focused on system design rather than operational simplicity.
 test CI trigger
+test test test

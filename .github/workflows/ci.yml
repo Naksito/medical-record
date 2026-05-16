@@ -1,3 +1,21 @@
+Skip to content
+Naksito
+medical-record
+Repository navigation
+Code
+Pull requests
+Actions
+Projects
+Wiki
+Security and quality
+Insights
+Settings
+CI/CD Pipeline
+Fix Docker auth and image tags #4
+All jobs
+Run details
+Workflow file for this run
+.github/workflows/ci.yml at 44a88fa
 name: CI/CD Pipeline
 
 on:
@@ -37,22 +55,9 @@ jobs:
 
       - name: Build and push auth image
         run: |
-          docker build -t naksito03/auth:latest .
+          docker build -t naksito03/auth:latest ./auth
           docker push naksito03/auth:latest
-
       - name: Build and push api image
         run: |
-          docker build -t naksito03/api:latest .
-          docker push naksito03/api:latest      
-
-      - name: Build & push users image
-        run: |
-          cd users
-          docker build -t naksito03/users-service:latest .
-          docker push naksito03/users-service:latest
-
-      - name: Build & push appointments image
-        run: |
-          cd appointments
-          docker build -t naksito03/appointments-service:latest .
-          docker push naksito03/appointments-service:latest
+          docker build -t naksito03/api:latest ./api
+          docker push naksito03/api:latest
