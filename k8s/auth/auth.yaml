@@ -41,7 +41,7 @@ spec:
             - name: ADMIN_EMAIL
               value: "admin"
             - name: ADMIN_PASSWORD
-              value: "admin"
+              value: "adminpass"
           livenessProbe:
             grpc:
               port: 9091
