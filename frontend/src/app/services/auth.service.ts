@@ -88,7 +88,7 @@ export class AuthService {
     return this.httpClient.get<ApiResponse>(`${this.api}/pages/${page}`).pipe(
       map(response => response.code === 'SUCCESS'),
       catchError(err => {
-        return of(this.router.parseUrl(''));
+        return of(this.router.parseUrl('/login'));
       })
     );
   }

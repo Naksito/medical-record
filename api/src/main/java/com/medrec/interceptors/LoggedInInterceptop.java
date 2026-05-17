@@ -33,6 +33,6 @@ public class LoggedInInterceptop implements HandlerInterceptor {
             return false;
         }
 
-        return false;
+        return true;
     }
 }
