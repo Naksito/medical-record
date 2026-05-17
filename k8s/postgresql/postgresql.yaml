@@ -1,4 +1,3 @@
-# Persistent Volume Claim for PostgreSQL Storage
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -10,10 +9,7 @@ spec:
   resources:
     requests:
       storage: 1Gi
-
 ---
-
-# ConfigMap for Initialization of Databases for the Different Microservices
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -23,10 +19,7 @@ data:
   init.sql: |
     CREATE DATABASE appointments;
     CREATE DATABASE users;
-
 ---
-
-# PostgreSQL Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -44,24 +37,26 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:15
+          image: postgres
           ports:
             - containerPort: 5432
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "100m"
-            limits:
               memory: "256Mi"
               cpu: "200m"
-          env: # Env variables should be held in a 'Secret' K8S resource for production use
+            limits:
+              memory: "512Mi"
+              cpu: "400m"
+          env:
             - name: POSTGRES_USER
               value: "admin"
             - name: POSTGRES_PASSWORD
               value: "admin"
+            - name: PGDATA
+              value: "/pgdata/data"
           volumeMounts:
             - name: postgres-storage
-              mountPath: /var/lib/postgresql/data
+              mountPath: /pgdata
             - name: init-scripts
               mountPath: /docker-entrypoint-initdb.d/
       volumes:
@@ -71,10 +66,7 @@ spec:
         - name: init-scripts
           configMap:
             name: postgres-init
-
 ---
-
-# PostgreSQL Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -86,5 +78,5 @@ spec:
   ports:
     - port: 5432
       targetPort: 5432
-      nodePort: 31001
+      nodePort: 30001
   type: NodePort

@@ -37,9 +37,21 @@ jobs:
 
       - name: Build and push auth image
         run: |
-          docker build -t naksito03/auth:latest ./auth
-          docker push naksito03/auth:latest
+          docker build -t naksito03/auth-service:latest ./auth
+          docker push naksito03/auth-service:latest
       - name: Build and push api image
         run: |
-          docker build -t naksito03/api:latest ./api
-          docker push naksito03/api:latest
+          docker build -t naksito03/api-service:latest ./api
+          docker push naksito03/api-service:latest
+      - name: Build and push users image
+        run: |
+          docker build -t naksito03/users-service:latest ./users
+          docker push naksito03/users-service:latest
+      - name: Build and push appointments image
+        run: |
+          docker build -t naksito03/appointments-service:latest ./appointments
+          docker push naksito03/appointments-service:latest
+      - name: Build and push frontend image
+        run: |
+          docker build -t naksito03/frontend-service:latest ./frontend
+          docker push naksito03/frontend-service:latest
