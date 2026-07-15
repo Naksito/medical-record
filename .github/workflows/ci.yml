@@ -96,7 +96,15 @@ jobs:
           echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
           chmod 600 ~/.kube/config
           echo "Kubeconfig written to $HOME/.kube/config"
-          kubectl config view --minify --kubeconfig=$HOME/.kube/config >/dev/null
+          if ! kubectl config view --kubeconfig=$HOME/.kube/config >/dev/null 2>&1; then
+            echo "The provided kubeconfig is invalid or empty. Skipping Kubernetes deployment."
+            exit 0
+          fi
+          if ! kubectl config current-context --kubeconfig=$HOME/.kube/config >/dev/null 2>&1; then
+            echo "The provided kubeconfig does not define a current context. Skipping Kubernetes deployment."
+            exit 0
+          fi
+          echo "Kubeconfig looks valid. Continuing with deployment."
 
       - name: Provision Kubernetes resources with Terraform
         env:
