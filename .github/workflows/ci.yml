@@ -103,7 +103,7 @@ jobs:
           TF_VAR_appointments_db_password: ${{ secrets.APPOINTMENTS_DB_PASSWORD }}
           TF_VAR_kubeconfig_path: ~/.kube/config
         run: |
-          terraform -chdir=terraform init
+          terraform -chdir=terraform init -upgrade
           terraform -chdir=terraform apply -auto-approve \
             -var="kubeconfig_path=$HOME/.kube/config" \
             -var="jwt_secret=${{ secrets.JWT_SECRET }}" \
