@@ -95,6 +95,8 @@ jobs:
           mkdir -p ~/.kube
           echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
           chmod 600 ~/.kube/config
+          echo "Kubeconfig written to $HOME/.kube/config"
+          kubectl config view --minify --kubeconfig=$HOME/.kube/config >/dev/null
 
       - name: Provision Kubernetes resources with Terraform
         env:

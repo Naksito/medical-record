@@ -13,16 +13,16 @@ provider "kubernetes" {
   config_path = var.kubeconfig_path
 }
 
-resource "kubernetes_namespace" "medical_record" {
+resource "kubernetes_namespace_v1" "medical_record" {
   metadata {
     name = "medical-record"
   }
 }
 
-resource "kubernetes_secret" "auth_secret" {
+resource "kubernetes_secret_v1" "auth_secret" {
   metadata {
     name      = "auth-secret"
-    namespace = "medical-record"
+    namespace = kubernetes_namespace_v1.medical_record.metadata[0].name
   }
 
   data = {
@@ -32,10 +32,10 @@ resource "kubernetes_secret" "auth_secret" {
   type = "Opaque"
 }
 
-resource "kubernetes_secret" "users_secret" {
+resource "kubernetes_secret_v1" "users_secret" {
   metadata {
     name      = "users-secret"
-    namespace = kubernetes_namespace.medical_record.metadata[0].name
+    namespace = kubernetes_namespace_v1.medical_record.metadata[0].name
   }
 
   data = {
@@ -45,10 +45,10 @@ resource "kubernetes_secret" "users_secret" {
   type = "Opaque"
 }
 
-resource "kubernetes_secret" "appointments_secret" {
+resource "kubernetes_secret_v1" "appointments_secret" {
   metadata {
     name      = "appointments-secret"
-    namespace = kubernetes_namespace.medical_record.metadata[0].name
+    namespace = kubernetes_namespace_v1.medical_record.metadata[0].name
   }
 
   data = {
