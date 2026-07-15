@@ -5,11 +5,11 @@
   <parent>
     <artifactId>medical-record</artifactId>
     <groupId>com.medrec</groupId>
-    <version>1.0.0</version>
+    <version>${revision}</version>
   </parent>
 
   <artifactId>auth</artifactId>
-  <version>1.0.0</version>
+  <version>${revision}</version>
 
   <name>auth</name>
 
