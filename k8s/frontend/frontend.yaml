@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: frontend-service
-          image: naksito03/frontend-service:latest
+          image: __FRONTEND_IMAGE__:__FRONTEND_TAG__
           imagePullPolicy: Always
           ports:
             - containerPort: 80

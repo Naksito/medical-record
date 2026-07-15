@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: api-service
-          image: naksito03/api-service:latest
+          image: __API_IMAGE__:__API_TAG__
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

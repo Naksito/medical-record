@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: users-service
-        image: naksito03/users-service:latest
+        image: __USERS_IMAGE__:__USERS_TAG__
         imagePullPolicy: Always
         ports:
           - containerPort: 9090

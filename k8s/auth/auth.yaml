@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: docker.io/naksito03/auth-service:latest
+          image: __AUTH_IMAGE__:__AUTH_TAG__
           imagePullPolicy: Always
           ports:
             - containerPort: 9091

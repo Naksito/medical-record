@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: appointments-service
-        image: naksito03/appointments-service:latest
+        image: __APPOINTMENTS_IMAGE__:__APPOINTMENTS_TAG__
         imagePullPolicy: Always
         ports:
           - containerPort: 9092
