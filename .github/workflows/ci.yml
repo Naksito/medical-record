@@ -157,16 +157,16 @@ jobs:
       - name: Verify Kubernetes rollout
         if: steps.kubeconfig.outputs.kube_ready == 'true'
         run: |
-          kubectl rollout status deployment/postgres -n medical-record --timeout=300s || exit 1
-          if ! kubectl rollout status deployment/auth-service -n medical-record --timeout=300s; then
-            echo "Auth service rollout failed. Showing pod details..."
-            kubectl describe pod -n medical-record -l app=auth-service || true
-            kubectl logs -n medical-record -l app=auth-service --all-containers=true || true
-            exit 1
-          fi
-          kubectl rollout status deployment/users-service -n medical-record --timeout=300s || exit 1
-          kubectl rollout status deployment/appointments-service -n medical-record --timeout=300s || exit 1
-          kubectl rollout status deployment/api-service -n medical-record --timeout=300s || exit 1
-          kubectl rollout status deployment/frontend-service -n medical-record --timeout=300s || exit 1
+          for deployment in postgres auth-service users-service appointments-service api-service frontend-service; do
+            echo "Waiting for deployment/$deployment to become available..."
+            if ! kubectl rollout status deployment/$deployment -n medical-record --timeout=600s; then
+              echo "$deployment rollout failed. Showing diagnostics..."
+              kubectl get pods -n medical-record -o wide || true
+              kubectl describe deployment $deployment -n medical-record || true
+              kubectl describe pod -n medical-record -l app=$deployment || true
+              kubectl logs -n medical-record -l app=$deployment --all-containers=true || true
+              exit 1
+            fi
+          done
           echo "All deployments are available."
           kubectl get pods -n medical-record
