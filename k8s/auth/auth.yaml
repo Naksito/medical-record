@@ -33,7 +33,7 @@ spec:
             - name: AUTH_PORT
               value: "9091"
             - name: JWT_SECRET
-              value: "Medrec JWT Secret (This key needs to be very very long, in order to maximize security, io.jwttoken will not start the process, unless the key is deemed secure enough.)"
+              value: "REPLACE_WITH_A_STRONG_SECRET"
             - name: USERS_PORT
               value: "9090"
             - name: USERS_HOST
