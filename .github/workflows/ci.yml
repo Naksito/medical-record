@@ -114,7 +114,7 @@ jobs:
           echo "Kubeconfig looks valid. Continuing with deployment."
           echo "kube_ready=true" >> $GITHUB_OUTPUT
 
-      - name: Provision Kubernetes resources with Terraform
+      - name: Import existing Kubernetes resources
         if: steps.kubeconfig.outputs.kube_ready == 'true'
         env:
           TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
@@ -123,6 +123,19 @@ jobs:
           TF_VAR_kubeconfig_path: ~/.kube/config
         run: |
           terraform -chdir=terraform init -upgrade
+          terraform -chdir=terraform import -var="kubeconfig_path=$HOME/.kube/config" -var="jwt_secret=${{ secrets.JWT_SECRET }}" -var="users_db_password=${{ secrets.USERS_DB_PASSWORD }}" -var="appointments_db_password=${{ secrets.APPOINTMENTS_DB_PASSWORD }}" kubernetes_namespace_v1.medical_record medical-record || true
+          terraform -chdir=terraform import -var="kubeconfig_path=$HOME/.kube/config" -var="jwt_secret=${{ secrets.JWT_SECRET }}" -var="users_db_password=${{ secrets.USERS_DB_PASSWORD }}" -var="appointments_db_password=${{ secrets.APPOINTMENTS_DB_PASSWORD }}" kubernetes_secret_v1.auth_secret medical-record/auth-secret || true
+          terraform -chdir=terraform import -var="kubeconfig_path=$HOME/.kube/config" -var="jwt_secret=${{ secrets.JWT_SECRET }}" -var="users_db_password=${{ secrets.USERS_DB_PASSWORD }}" -var="appointments_db_password=${{ secrets.APPOINTMENTS_DB_PASSWORD }}" kubernetes_secret_v1.users_secret medical-record/users-secret || true
+          terraform -chdir=terraform import -var="kubeconfig_path=$HOME/.kube/config" -var="jwt_secret=${{ secrets.JWT_SECRET }}" -var="users_db_password=${{ secrets.USERS_DB_PASSWORD }}" -var="appointments_db_password=${{ secrets.APPOINTMENTS_DB_PASSWORD }}" kubernetes_secret_v1.appointments_secret medical-record/appointments-secret || true
+
+      - name: Provision Kubernetes resources with Terraform
+        if: steps.kubeconfig.outputs.kube_ready == 'true'
+        env:
+          TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+          TF_VAR_users_db_password: ${{ secrets.USERS_DB_PASSWORD }}
+          TF_VAR_appointments_db_password: ${{ secrets.APPOINTMENTS_DB_PASSWORD }}
+          TF_VAR_kubeconfig_path: ~/.kube/config
+        run: |
           terraform -chdir=terraform apply -auto-approve \
             -var="kubeconfig_path=$HOME/.kube/config" \
             -var="jwt_secret=${{ secrets.JWT_SECRET }}" \
