@@ -153,3 +153,15 @@ jobs:
           kubectl apply -f /tmp/medical-record-k8s-rendered/appointments/appointments.yaml
           kubectl apply -f /tmp/medical-record-k8s-rendered/api/api.yaml
           kubectl apply -f /tmp/medical-record-k8s-rendered/frontend/frontend.yaml
+
+      - name: Verify Kubernetes rollout
+        if: steps.kubeconfig.outputs.kube_ready == 'true'
+        run: |
+          kubectl rollout status deployment/postgres -n medical-record --timeout=300s || exit 1
+          kubectl rollout status deployment/auth-service -n medical-record --timeout=300s || exit 1
+          kubectl rollout status deployment/users-service -n medical-record --timeout=300s || exit 1
+          kubectl rollout status deployment/appointments-service -n medical-record --timeout=300s || exit 1
+          kubectl rollout status deployment/api-service -n medical-record --timeout=300s || exit 1
+          kubectl rollout status deployment/frontend-service -n medical-record --timeout=300s || exit 1
+          echo "All deployments are available."
+          kubectl get pods -n medical-record
