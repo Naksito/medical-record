@@ -33,7 +33,10 @@ spec:
             - name: AUTH_PORT
               value: "9091"
             - name: JWT_SECRET
-              value: "REPLACE_WITH_A_STRONG_SECRET"
+              valueFrom:
+                secretKeyRef:
+                  name: auth-secret
+                  key: JWT_SECRET
             - name: USERS_PORT
               value: "9090"
             - name: USERS_HOST
