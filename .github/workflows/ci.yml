@@ -158,7 +158,12 @@ jobs:
         if: steps.kubeconfig.outputs.kube_ready == 'true'
         run: |
           kubectl rollout status deployment/postgres -n medical-record --timeout=300s || exit 1
-          kubectl rollout status deployment/auth-service -n medical-record --timeout=300s || exit 1
+          if ! kubectl rollout status deployment/auth-service -n medical-record --timeout=300s; then
+            echo "Auth service rollout failed. Showing pod details..."
+            kubectl describe pod -n medical-record -l app=auth-service || true
+            kubectl logs -n medical-record -l app=auth-service --all-containers=true || true
+            exit 1
+          fi
           kubectl rollout status deployment/users-service -n medical-record --timeout=300s || exit 1
           kubectl rollout status deployment/appointments-service -n medical-record --timeout=300s || exit 1
           kubectl rollout status deployment/api-service -n medical-record --timeout=300s || exit 1
