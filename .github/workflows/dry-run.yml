@@ -1,0 +1,55 @@
+name: Dry-run Render Manifests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Extract Maven version
+        id: version
+        run: echo "version=$(mvn -q -DforceStdout help:evaluate -Dexpression=revision)" >> $GITHUB_OUTPUT
+
+      - name: Extract per-service versions
+        id: svc_versions
+        run: |
+          echo "auth_version=$(mvn -q -DforceStdout help:evaluate -Dexpression=auth.version)" >> $GITHUB_OUTPUT
+          echo "users_version=$(mvn -q -DforceStdout help:evaluate -Dexpression=users.version)" >> $GITHUB_OUTPUT
+          echo "appointments_version=$(mvn -q -DforceStdout help:evaluate -Dexpression=appointments.version)" >> $GITHUB_OUTPUT
+          echo "api_version=$(mvn -q -DforceStdout help:evaluate -Dexpression=api.version)" >> $GITHUB_OUTPUT
+          echo "frontend_version=$(mvn -q -DforceStdout help:evaluate -Dexpression=frontend.version)" >> $GITHUB_OUTPUT
+
+      - name: Update version manifest
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          AUTH_VERSION: ${{ steps.svc_versions.outputs.auth_version }}
+          USERS_VERSION: ${{ steps.svc_versions.outputs.users_version }}
+          APPOINTMENTS_VERSION: ${{ steps.svc_versions.outputs.appointments_version }}
+          API_VERSION: ${{ steps.svc_versions.outputs.api_version }}
+          FRONTEND_VERSION: ${{ steps.svc_versions.outputs.frontend_version }}
+        run: python scripts/update_versions.py
+
+      - name: Render manifests
+        run: python scripts/render_manifests.py
+
+      - name: Upload rendered manifests
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-manifests
+          path: /tmp/medical-record-k8s-rendered

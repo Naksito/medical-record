@@ -45,6 +45,15 @@ jobs:
         id: version
         run: echo "version=$(mvn -q -DforceStdout help:evaluate -Dexpression=revision)" >> $GITHUB_OUTPUT
 
+      - name: Extract per-service versions
+        id: svc_versions
+        run: |
+          echo "auth_version=$(mvn -q -DforceStdout help:evaluate -Dexpression=auth.version)" >> $GITHUB_OUTPUT
+          echo "users_version=$(mvn -q -DforceStdout help:evaluate -Dexpression=users.version)" >> $GITHUB_OUTPUT
+          echo "appointments_version=$(mvn -q -DforceStdout help:evaluate -Dexpression=appointments.version)" >> $GITHUB_OUTPUT
+          echo "api_version=$(mvn -q -DforceStdout help:evaluate -Dexpression=api.version)" >> $GITHUB_OUTPUT
+          echo "frontend_version=$(mvn -q -DforceStdout help:evaluate -Dexpression=frontend.version)" >> $GITHUB_OUTPUT
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -80,7 +89,12 @@ jobs:
       - name: Update version manifest
         env:
           VERSION: ${{ steps.version.outputs.version }}
-        run: python scripts/update_versions.py "$VERSION"
+          AUTH_VERSION: ${{ steps.svc_versions.outputs.auth_version }}
+          USERS_VERSION: ${{ steps.svc_versions.outputs.users_version }}
+          APPOINTMENTS_VERSION: ${{ steps.svc_versions.outputs.appointments_version }}
+          API_VERSION: ${{ steps.svc_versions.outputs.api_version }}
+          FRONTEND_VERSION: ${{ steps.svc_versions.outputs.frontend_version }}
+        run: python scripts/update_versions.py
 
       - name: Commit version manifest updates
         run: |
