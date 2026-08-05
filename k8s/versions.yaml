@@ -1,16 +1,16 @@
 services:
   auth:
     image: naksito03/auth-service
-    tag: 1.0.0
+    tag: 1.1.0
   users:
     image: naksito03/users-service
-    tag: 1.0.0
+    tag: 1.1.0
   appointments:
     image: naksito03/appointments-service
-    tag: 1.0.0
+    tag: 1.1.0
   api:
     image: naksito03/api-service
-    tag: 1.0.0
+    tag: 1.1.0
   frontend:
     image: naksito03/frontend-service
-    tag: 1.0.0
+    tag: 1.1.0
