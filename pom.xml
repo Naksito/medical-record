@@ -13,7 +13,7 @@
   <name>medical-record</name>
 
   <properties>
-    <revision>1.0.0</revision>
+    <revision>1.1.0</revision>
     <auth.version>${revision}</auth.version>
     <users.version>${revision}</users.version>
     <appointments.version>${revision}</appointments.version>
