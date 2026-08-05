@@ -14,11 +14,11 @@
 
   <properties>
     <revision>1.1.0</revision>
-    <auth.version>${revision}</auth.version>
-    <users.version>${revision}</users.version>
-    <appointments.version>${revision}</appointments.version>
-    <api.version>${revision}</api.version>
-    <frontend.version>${revision}</frontend.version>
+    <auth.version>1.0.0</auth.version>
+    <users.version>1.0.0</users.version>
+    <appointments.version>1.0.0</appointments.version>
+    <api.version>1.0.0</api.version>
+    <frontend.version>1.0.0</frontend.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
 

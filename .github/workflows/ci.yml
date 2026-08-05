@@ -8,6 +8,8 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'k8s/versions.yaml'
 
 jobs:
   build-and-push:
@@ -23,14 +25,6 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.8.5
-
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v4
-
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
@@ -38,12 +32,9 @@ jobs:
           key: maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             maven-${{ runner.os }}-
+
       - name: Build with Maven
         run: mvn clean package -DskipTests
-
-      - name: Extract Maven version
-        id: version
-        run: echo "version=$(mvn -q -DforceStdout help:evaluate -Dexpression=revision)" >> $GITHUB_OUTPUT
 
       - name: Extract per-service versions
         id: svc_versions
@@ -62,125 +53,46 @@ jobs:
 
       - name: Build and push auth image
         run: |
-          docker build -t naksito03/auth-service:${{ steps.svc_versions.outputs.auth_version }} -t naksito03/auth-service:latest ./auth
+          docker build \
+            --build-arg SERVICE_VERSION=${{ steps.svc_versions.outputs.auth_version }} \
+            -t naksito03/auth-service:${{ steps.svc_versions.outputs.auth_version }} \
+            -t naksito03/auth-service:latest \
+            ./auth
           docker push naksito03/auth-service:${{ steps.svc_versions.outputs.auth_version }}
           docker push naksito03/auth-service:latest
+
       - name: Build and push api image
         run: |
-          docker build -t naksito03/api-service:${{ steps.svc_versions.outputs.api_version }} -t naksito03/api-service:latest ./api
+          docker build \
+            --build-arg SERVICE_VERSION=${{ steps.svc_versions.outputs.api_version }} \
+            -t naksito03/api-service:${{ steps.svc_versions.outputs.api_version }} \
+            -t naksito03/api-service:latest \
+            ./api
           docker push naksito03/api-service:${{ steps.svc_versions.outputs.api_version }}
           docker push naksito03/api-service:latest
+
       - name: Build and push users image
         run: |
-          docker build -t naksito03/users-service:${{ steps.svc_versions.outputs.users_version }} -t naksito03/users-service:latest ./users
+          docker build \
+            --build-arg SERVICE_VERSION=${{ steps.svc_versions.outputs.users_version }} \
+            -t naksito03/users-service:${{ steps.svc_versions.outputs.users_version }} \
+            -t naksito03/users-service:latest \
+            ./users
           docker push naksito03/users-service:${{ steps.svc_versions.outputs.users_version }}
           docker push naksito03/users-service:latest
+
       - name: Build and push appointments image
         run: |
-          docker build -t naksito03/appointments-service:${{ steps.svc_versions.outputs.appointments_version }} -t naksito03/appointments-service:latest ./appointments
+          docker build \
+            --build-arg SERVICE_VERSION=${{ steps.svc_versions.outputs.appointments_version }} \
+            -t naksito03/appointments-service:${{ steps.svc_versions.outputs.appointments_version }} \
+            -t naksito03/appointments-service:latest \
+            ./appointments
           docker push naksito03/appointments-service:${{ steps.svc_versions.outputs.appointments_version }}
           docker push naksito03/appointments-service:latest
+
       - name: Build and push frontend image
         run: |
           docker build -t naksito03/frontend-service:${{ steps.svc_versions.outputs.frontend_version }} -t naksito03/frontend-service:latest ./frontend
           docker push naksito03/frontend-service:${{ steps.svc_versions.outputs.frontend_version }}
           docker push naksito03/frontend-service:latest
-
-      - name: Update version manifest
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-          AUTH_VERSION: ${{ steps.svc_versions.outputs.auth_version }}
-          USERS_VERSION: ${{ steps.svc_versions.outputs.users_version }}
-          APPOINTMENTS_VERSION: ${{ steps.svc_versions.outputs.appointments_version }}
-          API_VERSION: ${{ steps.svc_versions.outputs.api_version }}
-          FRONTEND_VERSION: ${{ steps.svc_versions.outputs.frontend_version }}
-        run: python scripts/update_versions.py
-
-      - name: Commit version manifest updates
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add k8s/versions.yaml
-          if git diff --cached --quiet; then
-            echo "No version manifest changes to commit"
-          else
-            git commit -m "chore: update service versions to ${{ steps.version.outputs.version }}"
-            git push
-          fi
-
-      - name: Configure kubeconfig
-        id: kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
-          chmod 600 ~/.kube/config
-          echo "Kubeconfig written to $HOME/.kube/config"
-          if ! kubectl config view --kubeconfig=$HOME/.kube/config >/dev/null 2>&1; then
-            echo "The provided kubeconfig is invalid or empty. Skipping Kubernetes deployment."
-            echo "kube_ready=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          if ! kubectl config current-context --kubeconfig=$HOME/.kube/config >/dev/null 2>&1; then
-            echo "The provided kubeconfig does not define a current context. Skipping Kubernetes deployment."
-            echo "kube_ready=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          echo "Kubeconfig looks valid. Continuing with deployment."
-          echo "kube_ready=true" >> $GITHUB_OUTPUT
-
-      - name: Import existing Kubernetes resources
-        if: steps.kubeconfig.outputs.kube_ready == 'true'
-        env:
-          TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
-          TF_VAR_users_db_password: ${{ secrets.USERS_DB_PASSWORD }}
-          TF_VAR_appointments_db_password: ${{ secrets.APPOINTMENTS_DB_PASSWORD }}
-          TF_VAR_kubeconfig_path: ~/.kube/config
-        run: |
-          terraform -chdir=terraform init -upgrade
-          terraform -chdir=terraform import -var="kubeconfig_path=$HOME/.kube/config" -var="jwt_secret=${{ secrets.JWT_SECRET }}" -var="users_db_password=${{ secrets.USERS_DB_PASSWORD }}" -var="appointments_db_password=${{ secrets.APPOINTMENTS_DB_PASSWORD }}" kubernetes_namespace_v1.medical_record medical-record || true
-          terraform -chdir=terraform import -var="kubeconfig_path=$HOME/.kube/config" -var="jwt_secret=${{ secrets.JWT_SECRET }}" -var="users_db_password=${{ secrets.USERS_DB_PASSWORD }}" -var="appointments_db_password=${{ secrets.APPOINTMENTS_DB_PASSWORD }}" kubernetes_secret_v1.auth_secret medical-record/auth-secret || true
-          terraform -chdir=terraform import -var="kubeconfig_path=$HOME/.kube/config" -var="jwt_secret=${{ secrets.JWT_SECRET }}" -var="users_db_password=${{ secrets.USERS_DB_PASSWORD }}" -var="appointments_db_password=${{ secrets.APPOINTMENTS_DB_PASSWORD }}" kubernetes_secret_v1.users_secret medical-record/users-secret || true
-          terraform -chdir=terraform import -var="kubeconfig_path=$HOME/.kube/config" -var="jwt_secret=${{ secrets.JWT_SECRET }}" -var="users_db_password=${{ secrets.USERS_DB_PASSWORD }}" -var="appointments_db_password=${{ secrets.APPOINTMENTS_DB_PASSWORD }}" kubernetes_secret_v1.appointments_secret medical-record/appointments-secret || true
-
-      - name: Provision Kubernetes resources with Terraform
-        if: steps.kubeconfig.outputs.kube_ready == 'true'
-        env:
-          TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
-          TF_VAR_users_db_password: ${{ secrets.USERS_DB_PASSWORD }}
-          TF_VAR_appointments_db_password: ${{ secrets.APPOINTMENTS_DB_PASSWORD }}
-          TF_VAR_kubeconfig_path: ~/.kube/config
-        run: |
-          terraform -chdir=terraform apply -auto-approve \
-            -var="kubeconfig_path=$HOME/.kube/config" \
-            -var="jwt_secret=${{ secrets.JWT_SECRET }}" \
-            -var="users_db_password=${{ secrets.USERS_DB_PASSWORD }}" \
-            -var="appointments_db_password=${{ secrets.APPOINTMENTS_DB_PASSWORD }}"
-
-      - name: Deploy Kubernetes manifests
-        if: steps.kubeconfig.outputs.kube_ready == 'true'
-        run: |
-          python scripts/render_manifests.py
-          kubectl apply -f /tmp/medical-record-k8s-rendered/namespace.yaml
-          kubectl apply -f /tmp/medical-record-k8s-rendered/postgresql/postgresql.yaml
-          kubectl apply -f /tmp/medical-record-k8s-rendered/auth/auth.yaml
-          kubectl apply -f /tmp/medical-record-k8s-rendered/users/users.yaml
-          kubectl apply -f /tmp/medical-record-k8s-rendered/appointments/appointments.yaml
-          kubectl apply -f /tmp/medical-record-k8s-rendered/api/api.yaml
-          kubectl apply -f /tmp/medical-record-k8s-rendered/frontend/frontend.yaml
-
-      - name: Verify Kubernetes rollout
-        if: steps.kubeconfig.outputs.kube_ready == 'true'
-        run: |
-          for deployment in postgres auth-service users-service appointments-service api-service frontend-service; do
-            echo "Waiting for deployment/$deployment to become available..."
-            if ! kubectl rollout status deployment/$deployment -n medical-record --timeout=600s; then
-              echo "$deployment rollout failed. Showing diagnostics..."
-              kubectl get pods -n medical-record -o wide || true
-              kubectl describe deployment $deployment -n medical-record || true
-              kubectl describe pod -n medical-record -l app=$deployment || true
-              kubectl logs -n medical-record -l app=$deployment --all-containers=true || true
-              exit 1
-            fi
-          done
-          echo "All deployments are available."
-          kubectl get pods -n medical-record

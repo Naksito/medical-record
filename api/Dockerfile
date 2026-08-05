@@ -19,6 +19,9 @@ RUN jlink \
 # Alpine is by far the best option to make the image size as small as possible
 FROM alpine:latest
 
+ARG SERVICE_VERSION=unknown
+ENV SERVICE_VERSION=${SERVICE_VERSION}
+
 COPY --from=packager /opt/jre /opt/jre
 COPY --from=packager /opt/app.jar /opt/app.jar
 
