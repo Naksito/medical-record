@@ -13,12 +13,12 @@
   <name>medical-record</name>
 
   <properties>
-    <revision>1.1.0</revision>
-    <auth.version>1.0.0</auth.version>
-    <users.version>1.0.0</users.version>
-    <appointments.version>1.0.0</appointments.version>
-    <api.version>1.0.0</api.version>
-    <frontend.version>1.0.0</frontend.version>
+    <revision>2.0.0</revision>
+    <auth.version>2.0.0</auth.version>
+    <users.version>2.0.0</users.version>
+    <appointments.version>2.0.0</appointments.version>
+    <api.version>2.0.0</api.version>
+    <frontend.version>2.0.0</frontend.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
 
