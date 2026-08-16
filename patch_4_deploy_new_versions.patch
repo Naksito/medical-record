@@ -1,0 +1,31 @@
+Subject: [PATCH] Deploy new versions.
+---
+Index: k8s/versions.yaml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/k8s/versions.yaml b/k8s/versions.yaml
+--- a/k8s/versions.yaml	(revision fa563b4e2472ecae04a96341efe00e2e69943be9)
++++ b/k8s/versions.yaml	(date 1786896422660)
+@@ -1,16 +1,16 @@
+ services:
+   auth:
+     image: naksito03/auth-service
+-    tag: 1.1.0
++    tag: 2.0.0
+   users:
+     image: naksito03/users-service
+-    tag: 1.1.0
++    tag: 2.0.0
+   appointments:
+     image: naksito03/appointments-service
+-    tag: 1.1.0
++    tag: 2.0.0
+   api:
+     image: naksito03/api-service
+-    tag: 1.1.0
++    tag: 2.0.0
+   frontend:
+     image: naksito03/frontend-service
+     tag: 1.1.0
