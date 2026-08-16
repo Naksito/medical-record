@@ -5,6 +5,8 @@ import com.google.protobuf.Int32Value;
 import com.google.protobuf.StringValue;
 import com.medrec.exception_handling.ExceptionsMapper;
 import com.medrec.grpc.appointments.*;
+import com.medrec.grpc.version.Version;
+import com.medrec.grpc.version.VersionServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
@@ -21,6 +23,7 @@ public class AppointmentsGateway {
     private final DiagnosesServiceGrpc.DiagnosesServiceBlockingStub diagnosesService;
     private final IcdServiceGrpc.IcdServiceBlockingStub icdService;
     private final SickLeaveServiceGrpc.SickLeaveServiceBlockingStub sickLeaveService;
+    private final VersionServiceGrpc.VersionServiceBlockingStub versionService;
 
     public AppointmentsGateway() {
         int port = Integer.parseInt(System.getenv("APPOINTMENTS_PORT"));
@@ -38,6 +41,7 @@ public class AppointmentsGateway {
         diagnosesService = DiagnosesServiceGrpc.newBlockingStub(channel);
         icdService = IcdServiceGrpc.newBlockingStub(channel);
         sickLeaveService = SickLeaveServiceGrpc.newBlockingStub(channel);
+        versionService = VersionServiceGrpc.newBlockingStub(channel);
     }
 
     public Appointments.Appointment createAppointment(Appointments.CreateAppointmentRequest request) throws RuntimeException {
@@ -318,5 +322,9 @@ public class AppointmentsGateway {
         } catch (StatusRuntimeException e) {
             throw ExceptionsMapper.translateStatusRuntimeException(e);
         }
+    }
+
+    public String getVersion() {
+        return versionService.getVersion(Version.GetVersionRequest.newBuilder().build()).getVersion();
     }
 }

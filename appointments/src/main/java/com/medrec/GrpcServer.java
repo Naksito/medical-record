@@ -4,6 +4,7 @@ import com.medrec.services.AppointmentsService;
 import com.medrec.services.DiagnosesService;
 import com.medrec.services.IcdService;
 import com.medrec.services.SickLeaveService;
+import com.medrec.services.VersionService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.health.v1.HealthCheckResponse;
@@ -28,6 +29,7 @@ public class GrpcServer {
             .addService(SickLeaveService.getInstance())
             .addService(DiagnosesService.getInstance())
             .addService(AppointmentsService.getInstance())
+            .addService(VersionService.getInstance())
             .addService(healthStatusManager.getHealthService())
             .build();
 

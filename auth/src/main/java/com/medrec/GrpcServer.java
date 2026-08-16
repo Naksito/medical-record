@@ -1,6 +1,7 @@
 package com.medrec;
 
 import com.medrec.services.AuthService;
+import com.medrec.services.VersionService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.health.v1.HealthCheckResponse;
@@ -23,6 +24,7 @@ public class GrpcServer {
         Server server = ServerBuilder.forPort(port)
             .executor(executor)
             .addService(AuthService.getInstance())
+            .addService(VersionService.getInstance())
             .addService(healthStatusManager.getHealthService())
             .addService(ProtoReflectionService.newInstance())
             .build();

@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package com.medrec.grpc.version;
+
+service VersionService {
+  rpc GetVersion (GetVersionRequest) returns (GetVersionResponse);
+}
+
+message GetVersionRequest {}
+
+message GetVersionResponse {
+  string version = 1;
+}

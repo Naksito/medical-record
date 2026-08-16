@@ -1,0 +1,127 @@
+Subject: [PATCH] Expose the service versions in the UI, on the home page.
+---
+Index: frontend/src/app/pages/home/home.component.css
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/frontend/src/app/pages/home/home.component.css b/frontend/src/app/pages/home/home.component.css
+--- a/frontend/src/app/pages/home/home.component.css	(revision fa563b4e2472ecae04a96341efe00e2e69943be9)
++++ b/frontend/src/app/pages/home/home.component.css	(date 1786894690547)
+@@ -1,0 +1,13 @@
++.versions-bar {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 1.25rem;
++  padding-bottom: 0.75rem;
++}
++
++.version-entry {
++  font-family: 'Courier New', Courier, monospace;
++  font-size: 0.8rem;
++  color: #6c757d;
++  letter-spacing: 0.03em;
++}
+Index: frontend/src/app/pages/home/home.component.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/frontend/src/app/pages/home/home.component.ts b/frontend/src/app/pages/home/home.component.ts
+--- a/frontend/src/app/pages/home/home.component.ts	(revision fa563b4e2472ecae04a96341efe00e2e69943be9)
++++ b/frontend/src/app/pages/home/home.component.ts	(date 1786894843736)
+@@ -1,8 +1,9 @@
+-import {Component} from '@angular/core';
++import {Component, OnInit} from '@angular/core';
+ import {Router} from '@angular/router';
+ import {NgIf} from '@angular/common';
+ import {LocalStorageService} from '../../services/local-storage.service';
+ import {AuthService} from '../../services/auth.service';
++import {StatusService, ServiceVersions} from '../../services/status.service';
+ 
+ @Component({
+   selector: 'app-home',
+@@ -12,18 +13,26 @@
+   templateUrl: './home.component.html',
+   styleUrl: './home.component.css'
+ })
+-export class HomeComponent {
++export class HomeComponent implements OnInit {
+   currentUser: string = '';
++  versions: ServiceVersions | null = null;
+ 
+   constructor(
+     private router: Router,
+     private authService: AuthService,
+     private localStorageService: LocalStorageService,
++    private statusService: StatusService,
+   ) {
+     const name = this.localStorageService.getCurrentUser();
+     this.currentUser = name ? name : 'User';
+   }
+ 
++  ngOnInit(): void {
++    this.statusService.getVersions()
++      .then(v => this.versions = v)
++      .catch(() => this.versions = null);
++  }
++
+   redirectToLogIn(): void {
+     this.router.navigate(['/login'])
+       .catch(err => {
+Index: frontend/src/app/services/status.service.ts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/frontend/src/app/services/status.service.ts b/frontend/src/app/services/status.service.ts
+new file mode 100644
+--- /dev/null	(date 1786894652656)
++++ b/frontend/src/app/services/status.service.ts	(date 1786894652656)
+@@ -0,0 +1,24 @@
++import {Injectable} from '@angular/core';
++import {HttpClient} from '@angular/common/http';
++import {environment} from '../../environments/environment';
++import {firstValueFrom} from 'rxjs';
++
++export interface ServiceVersions {
++  api: string;
++  auth: string;
++  users: string;
++  appointments: string;
++}
++
++@Injectable({
++  providedIn: 'root'
++})
++export class StatusService {
++  private readonly statusUrl: string = `${environment.apiGateway}/status`;
++
++  constructor(private httpClient: HttpClient) {}
++
++  public async getVersions(): Promise<ServiceVersions> {
++    return await firstValueFrom(this.httpClient.get<ServiceVersions>(this.statusUrl));
++  }
++}
+Index: frontend/src/app/pages/home/home.component.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/frontend/src/app/pages/home/home.component.html b/frontend/src/app/pages/home/home.component.html
+--- a/frontend/src/app/pages/home/home.component.html	(revision fa563b4e2472ecae04a96341efe00e2e69943be9)
++++ b/frontend/src/app/pages/home/home.component.html	(date 1786894686153)
+@@ -54,4 +54,13 @@
+         <a target="_blank" href="https://github.com/todorpopov/medical-record" class="text-reset"><b>GitHub</b></a>
+     </p>
+   </div>
++  <ng-container *ngIf="versions">
++    <hr class="mx-2"/>
++    <div class="versions-bar mx-2 my-3">
++      <span class="version-entry"><b>API</b> v{{ versions.api }}</span>
++      <span class="version-entry"><b>Auth</b> v{{ versions.auth }}</span>
++      <span class="version-entry"><b>Users</b> v{{ versions.users }}</span>
++      <span class="version-entry"><b>Appointments</b> v{{ versions.appointments }}</span>
++    </div>
++  </ng-container>
+ </div>

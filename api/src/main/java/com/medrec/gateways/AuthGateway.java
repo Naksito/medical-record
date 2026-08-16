@@ -5,6 +5,8 @@ import com.medrec.exception_handling.ExceptionsMapper;
 import com.medrec.grpc.auth.Auth;
 import com.medrec.grpc.auth.AuthServiceGrpc;
 import com.medrec.grpc.users.Users;
+import com.medrec.grpc.version.Version;
+import com.medrec.grpc.version.VersionServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
@@ -21,6 +23,7 @@ public class AuthGateway {
 
     private final ManagedChannel channel;
     private final AuthServiceGrpc.AuthServiceBlockingStub authService;
+    private final VersionServiceGrpc.VersionServiceBlockingStub versionService;
 
     public AuthGateway() {
         int port = Integer.parseInt(System.getenv("AUTH_PORT"));
@@ -35,6 +38,7 @@ public class AuthGateway {
         }
 
         authService = AuthServiceGrpc.newBlockingStub(channel);
+        versionService = VersionServiceGrpc.newBlockingStub(channel);
     }
 
     public AuthResponseDTO registerDoctor(
@@ -205,6 +209,10 @@ public class AuthGateway {
         } catch (StatusRuntimeException e){
             throw ExceptionsMapper.translateStatusRuntimeException(e);
         }
+    }
+
+    public String getVersion() {
+        return versionService.getVersion(Version.GetVersionRequest.newBuilder().build()).getVersion();
     }
 
     @PreDestroy

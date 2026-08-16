@@ -1,0 +1,480 @@
+Subject: [PATCH] Make code changes to all services to query the SERVICE_VERSION environment variable over gRPC; update service gateways in the API to use the new gRPC methods; expose all versions over a new endpoint in the API.
+---
+Index: appointments/src/main/java/com/medrec/GrpcServer.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/appointments/src/main/java/com/medrec/GrpcServer.java b/appointments/src/main/java/com/medrec/GrpcServer.java
+--- a/appointments/src/main/java/com/medrec/GrpcServer.java	(revision fa563b4e2472ecae04a96341efe00e2e69943be9)
++++ b/appointments/src/main/java/com/medrec/GrpcServer.java	(date 1786893505932)
+@@ -4,6 +4,7 @@
+ import com.medrec.services.DiagnosesService;
+ import com.medrec.services.IcdService;
+ import com.medrec.services.SickLeaveService;
++import com.medrec.services.VersionService;
+ import io.grpc.Server;
+ import io.grpc.ServerBuilder;
+ import io.grpc.health.v1.HealthCheckResponse;
+@@ -28,6 +29,7 @@
+             .addService(SickLeaveService.getInstance())
+             .addService(DiagnosesService.getInstance())
+             .addService(AppointmentsService.getInstance())
++            .addService(VersionService.getInstance())
+             .addService(healthStatusManager.getHealthService())
+             .build();
+ 
+Index: api/src/main/java/com/medrec/gateways/AppointmentsGateway.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/api/src/main/java/com/medrec/gateways/AppointmentsGateway.java b/api/src/main/java/com/medrec/gateways/AppointmentsGateway.java
+--- a/api/src/main/java/com/medrec/gateways/AppointmentsGateway.java	(revision fa563b4e2472ecae04a96341efe00e2e69943be9)
++++ b/api/src/main/java/com/medrec/gateways/AppointmentsGateway.java	(date 1786893529750)
+@@ -5,6 +5,8 @@
+ import com.google.protobuf.StringValue;
+ import com.medrec.exception_handling.ExceptionsMapper;
+ import com.medrec.grpc.appointments.*;
++import com.medrec.grpc.version.Version;
++import com.medrec.grpc.version.VersionServiceGrpc;
+ import io.grpc.ManagedChannel;
+ import io.grpc.ManagedChannelBuilder;
+ import io.grpc.StatusRuntimeException;
+@@ -21,6 +23,7 @@
+     private final DiagnosesServiceGrpc.DiagnosesServiceBlockingStub diagnosesService;
+     private final IcdServiceGrpc.IcdServiceBlockingStub icdService;
+     private final SickLeaveServiceGrpc.SickLeaveServiceBlockingStub sickLeaveService;
++    private final VersionServiceGrpc.VersionServiceBlockingStub versionService;
+ 
+     public AppointmentsGateway() {
+         int port = Integer.parseInt(System.getenv("APPOINTMENTS_PORT"));
+@@ -38,6 +41,7 @@
+         diagnosesService = DiagnosesServiceGrpc.newBlockingStub(channel);
+         icdService = IcdServiceGrpc.newBlockingStub(channel);
+         sickLeaveService = SickLeaveServiceGrpc.newBlockingStub(channel);
++        versionService = VersionServiceGrpc.newBlockingStub(channel);
+     }
+ 
+     public Appointments.Appointment createAppointment(Appointments.CreateAppointmentRequest request) throws RuntimeException {
+@@ -319,4 +323,8 @@
+             throw ExceptionsMapper.translateStatusRuntimeException(e);
+         }
+     }
++
++    public String getVersion() {
++        return versionService.getVersion(Version.GetVersionRequest.newBuilder().build()).getVersion();
++    }
+ }
+Index: api/src/main/java/com/medrec/gateways/AuthGateway.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/api/src/main/java/com/medrec/gateways/AuthGateway.java b/api/src/main/java/com/medrec/gateways/AuthGateway.java
+--- a/api/src/main/java/com/medrec/gateways/AuthGateway.java	(revision fa563b4e2472ecae04a96341efe00e2e69943be9)
++++ b/api/src/main/java/com/medrec/gateways/AuthGateway.java	(date 1786893428033)
+@@ -5,6 +5,8 @@
+ import com.medrec.grpc.auth.Auth;
+ import com.medrec.grpc.auth.AuthServiceGrpc;
+ import com.medrec.grpc.users.Users;
++import com.medrec.grpc.version.Version;
++import com.medrec.grpc.version.VersionServiceGrpc;
+ import io.grpc.ManagedChannel;
+ import io.grpc.ManagedChannelBuilder;
+ import io.grpc.StatusRuntimeException;
+@@ -21,6 +23,7 @@
+ 
+     private final ManagedChannel channel;
+     private final AuthServiceGrpc.AuthServiceBlockingStub authService;
++    private final VersionServiceGrpc.VersionServiceBlockingStub versionService;
+ 
+     public AuthGateway() {
+         int port = Integer.parseInt(System.getenv("AUTH_PORT"));
+@@ -35,6 +38,7 @@
+         }
+ 
+         authService = AuthServiceGrpc.newBlockingStub(channel);
++        versionService = VersionServiceGrpc.newBlockingStub(channel);
+     }
+ 
+     public AuthResponseDTO registerDoctor(
+@@ -207,6 +211,10 @@
+         }
+     }
+ 
++    public String getVersion() {
++        return versionService.getVersion(Version.GetVersionRequest.newBuilder().build()).getVersion();
++    }
++
+     @PreDestroy
+     public void shutdown() {
+         logger.info("Shutting down channel");
+Index: users/src/main/java/com/medrec/GrpcServer.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/users/src/main/java/com/medrec/GrpcServer.java b/users/src/main/java/com/medrec/GrpcServer.java
+--- a/users/src/main/java/com/medrec/GrpcServer.java	(revision fa563b4e2472ecae04a96341efe00e2e69943be9)
++++ b/users/src/main/java/com/medrec/GrpcServer.java	(date 1786893044101)
+@@ -3,6 +3,7 @@
+ import com.medrec.services.DoctorService;
+ import com.medrec.services.PatientService;
+ import com.medrec.services.SpecialtyService;
++import com.medrec.services.VersionService;
+ import io.grpc.Server;
+ import io.grpc.ServerBuilder;
+ import io.grpc.health.v1.HealthCheckResponse;
+@@ -26,6 +27,7 @@
+                 .addService(DoctorService.getInstance())
+                 .addService(PatientService.getInstance())
+                 .addService(SpecialtyService.getInstance())
++                .addService(VersionService.getInstance())
+                 .addService(healthStatusManager.getHealthService())
+                 .build();
+ 
+Index: auth/src/main/java/com/medrec/services/VersionService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/auth/src/main/java/com/medrec/services/VersionService.java b/auth/src/main/java/com/medrec/services/VersionService.java
+new file mode 100644
+--- /dev/null	(date 1786893404803)
++++ b/auth/src/main/java/com/medrec/services/VersionService.java	(date 1786893404803)
+@@ -0,0 +1,30 @@
++package com.medrec.services;
++
++import com.medrec.grpc.version.Version.GetVersionRequest;
++import com.medrec.grpc.version.Version.GetVersionResponse;
++import com.medrec.grpc.version.VersionServiceGrpc;
++import io.grpc.stub.StreamObserver;
++
++public class VersionService extends VersionServiceGrpc.VersionServiceImplBase {
++    private static VersionService instance;
++
++    private VersionService() {}
++
++    public static VersionService getInstance() {
++        if (instance == null) {
++            instance = new VersionService();
++        }
++        return instance;
++    }
++
++    @Override
++    public void getVersion(GetVersionRequest request, StreamObserver<GetVersionResponse> responseObserver) {
++        String version = System.getenv("SERVICE_VERSION");
++        if (version == null || version.isBlank()) {
++            version = "unknown";
++        }
++
++        responseObserver.onNext(GetVersionResponse.newBuilder().setVersion(version).build());
++        responseObserver.onCompleted();
++    }
++}
+Index: auth/src/main/proto/version.proto
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/auth/src/main/proto/version.proto b/auth/src/main/proto/version.proto
+new file mode 100644
+--- /dev/null	(date 1786893404802)
++++ b/auth/src/main/proto/version.proto	(date 1786893404802)
+@@ -0,0 +1,13 @@
++syntax = "proto3";
++
++package com.medrec.grpc.version;
++
++service VersionService {
++  rpc GetVersion (GetVersionRequest) returns (GetVersionResponse);
++}
++
++message GetVersionRequest {}
++
++message GetVersionResponse {
++  string version = 1;
++}
+Index: appointments/src/main/java/com/medrec/services/VersionService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/appointments/src/main/java/com/medrec/services/VersionService.java b/appointments/src/main/java/com/medrec/services/VersionService.java
+new file mode 100644
+--- /dev/null	(date 1786893498736)
++++ b/appointments/src/main/java/com/medrec/services/VersionService.java	(date 1786893498736)
+@@ -0,0 +1,30 @@
++package com.medrec.services;
++
++import com.medrec.grpc.version.Version.GetVersionRequest;
++import com.medrec.grpc.version.Version.GetVersionResponse;
++import com.medrec.grpc.version.VersionServiceGrpc;
++import io.grpc.stub.StreamObserver;
++
++public class VersionService extends VersionServiceGrpc.VersionServiceImplBase {
++    private static VersionService instance;
++
++    private VersionService() {}
++
++    public static VersionService getInstance() {
++        if (instance == null) {
++            instance = new VersionService();
++        }
++        return instance;
++    }
++
++    @Override
++    public void getVersion(GetVersionRequest request, StreamObserver<GetVersionResponse> responseObserver) {
++        String version = System.getenv("SERVICE_VERSION");
++        if (version == null || version.isBlank()) {
++            version = "unknown";
++        }
++
++        responseObserver.onNext(GetVersionResponse.newBuilder().setVersion(version).build());
++        responseObserver.onCompleted();
++    }
++}
+Index: api/src/main/java/com/medrec/gateways/UsersGateway.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/api/src/main/java/com/medrec/gateways/UsersGateway.java b/api/src/main/java/com/medrec/gateways/UsersGateway.java
+--- a/api/src/main/java/com/medrec/gateways/UsersGateway.java	(revision fa563b4e2472ecae04a96341efe00e2e69943be9)
++++ b/api/src/main/java/com/medrec/gateways/UsersGateway.java	(date 1786893067025)
+@@ -8,6 +8,8 @@
+ import com.medrec.grpc.users.PatientServiceGrpc;
+ import com.medrec.grpc.users.SpecialtyServiceGrpc;
+ import com.medrec.grpc.users.Users;
++import com.medrec.grpc.version.Version;
++import com.medrec.grpc.version.VersionServiceGrpc;
+ import io.grpc.ManagedChannel;
+ import io.grpc.ManagedChannelBuilder;
+ import io.grpc.StatusRuntimeException;
+@@ -27,6 +29,7 @@
+     private final DoctorServiceGrpc.DoctorServiceBlockingStub doctorService;
+     private final PatientServiceGrpc.PatientServiceBlockingStub patientService;
+     private final SpecialtyServiceGrpc.SpecialtyServiceBlockingStub specialtyService;
++    private final VersionServiceGrpc.VersionServiceBlockingStub versionService;
+ 
+     public UsersGateway() {
+         int port = Integer.parseInt(System.getenv("USERS_PORT"));
+@@ -43,6 +46,7 @@
+         doctorService = DoctorServiceGrpc.newBlockingStub(channel);
+         patientService = PatientServiceGrpc.newBlockingStub(channel);
+         specialtyService = SpecialtyServiceGrpc.newBlockingStub(channel);
++        versionService = VersionServiceGrpc.newBlockingStub(channel);
+     }
+ 
+     public Users.Doctor createDoctor(Users.CreateDoctorRequest doctor) throws RuntimeException {
+@@ -217,6 +221,10 @@
+         }
+     }
+ 
++    public String getVersion() {
++        return versionService.getVersion(Version.GetVersionRequest.newBuilder().build()).getVersion();
++    }
++
+     @PreDestroy
+     public void shutdown() {
+         logger.info("Shutting down channel");
+Index: appointments/src/main/proto/version.proto
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/appointments/src/main/proto/version.proto b/appointments/src/main/proto/version.proto
+new file mode 100644
+--- /dev/null	(date 1786893498736)
++++ b/appointments/src/main/proto/version.proto	(date 1786893498736)
+@@ -0,0 +1,13 @@
++syntax = "proto3";
++
++package com.medrec.grpc.version;
++
++service VersionService {
++  rpc GetVersion (GetVersionRequest) returns (GetVersionResponse);
++}
++
++message GetVersionRequest {}
++
++message GetVersionResponse {
++  string version = 1;
++}
+Index: auth/src/main/java/com/medrec/GrpcServer.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/auth/src/main/java/com/medrec/GrpcServer.java b/auth/src/main/java/com/medrec/GrpcServer.java
+--- a/auth/src/main/java/com/medrec/GrpcServer.java	(revision fa563b4e2472ecae04a96341efe00e2e69943be9)
++++ b/auth/src/main/java/com/medrec/GrpcServer.java	(date 1786893413856)
+@@ -1,6 +1,7 @@
+ package com.medrec;
+ 
+ import com.medrec.services.AuthService;
++import com.medrec.services.VersionService;
+ import io.grpc.Server;
+ import io.grpc.ServerBuilder;
+ import io.grpc.health.v1.HealthCheckResponse;
+@@ -23,6 +24,7 @@
+         Server server = ServerBuilder.forPort(port)
+             .executor(executor)
+             .addService(AuthService.getInstance())
++            .addService(VersionService.getInstance())
+             .addService(healthStatusManager.getHealthService())
+             .addService(ProtoReflectionService.newInstance())
+             .build();
+Index: users/src/main/java/com/medrec/services/VersionService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/users/src/main/java/com/medrec/services/VersionService.java b/users/src/main/java/com/medrec/services/VersionService.java
+new file mode 100644
+--- /dev/null	(date 1786893031131)
++++ b/users/src/main/java/com/medrec/services/VersionService.java	(date 1786893031131)
+@@ -0,0 +1,30 @@
++package com.medrec.services;
++
++import com.medrec.grpc.version.Version.GetVersionRequest;
++import com.medrec.grpc.version.Version.GetVersionResponse;
++import com.medrec.grpc.version.VersionServiceGrpc;
++import io.grpc.stub.StreamObserver;
++
++public class VersionService extends VersionServiceGrpc.VersionServiceImplBase {
++    private static VersionService instance;
++
++    private VersionService() {}
++
++    public static VersionService getInstance() {
++        if (instance == null) {
++            instance = new VersionService();
++        }
++        return instance;
++    }
++
++    @Override
++    public void getVersion(GetVersionRequest request, StreamObserver<GetVersionResponse> responseObserver) {
++        String version = System.getenv("SERVICE_VERSION");
++        if (version == null || version.isBlank()) {
++            version = "unknown";
++        }
++
++        responseObserver.onNext(GetVersionResponse.newBuilder().setVersion(version).build());
++        responseObserver.onCompleted();
++    }
++}
+Index: users/src/main/proto/version.proto
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/users/src/main/proto/version.proto b/users/src/main/proto/version.proto
+new file mode 100644
+--- /dev/null	(date 1786892478888)
++++ b/users/src/main/proto/version.proto	(date 1786892478888)
+@@ -0,0 +1,13 @@
++syntax = "proto3";
++
++package com.medrec.grpc.version;
++
++service VersionService {
++  rpc GetVersion (GetVersionRequest) returns (GetVersionResponse);
++}
++
++message GetVersionRequest {}
++
++message GetVersionResponse {
++  string version = 1;
++}
+\ No newline at end of file
+Index: api/src/main/java/com/medrec/controllers/StatusController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/api/src/main/java/com/medrec/controllers/StatusController.java b/api/src/main/java/com/medrec/controllers/StatusController.java
+new file mode 100644
+--- /dev/null	(date 1786893601970)
++++ b/api/src/main/java/com/medrec/controllers/StatusController.java	(date 1786893601970)
+@@ -0,0 +1,53 @@
++package com.medrec.controllers;
++
++import com.medrec.gateways.AppointmentsGateway;
++import com.medrec.gateways.AuthGateway;
++import com.medrec.gateways.UsersGateway;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.http.ResponseEntity;
++import org.springframework.web.bind.annotation.GetMapping;
++import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.RestController;
++
++import java.util.LinkedHashMap;
++import java.util.Map;
++import java.util.logging.Logger;
++
++@RestController
++@RequestMapping("api/status")
++public class StatusController {
++    private final Logger logger = Logger.getLogger(StatusController.class.getName());
++
++    private final UsersGateway usersGateway;
++    private final AuthGateway authGateway;
++    private final AppointmentsGateway appointmentsGateway;
++
++    @Autowired
++    public StatusController(
++        UsersGateway usersGateway,
++        AuthGateway authGateway,
++        AppointmentsGateway appointmentsGateway
++    ) {
++        this.usersGateway = usersGateway;
++        this.authGateway = authGateway;
++        this.appointmentsGateway = appointmentsGateway;
++    }
++
++    @GetMapping
++    public ResponseEntity<Map<String, String>> getStatus() {
++        this.logger.info("Status endpoint called");
++
++        String apiVersion = System.getenv("SERVICE_VERSION");
++        if (apiVersion == null || apiVersion.isBlank()) {
++            apiVersion = "unknown";
++        }
++
++        Map<String, String> versions = new LinkedHashMap<>();
++        versions.put("api", apiVersion);
++        versions.put("auth", authGateway.getVersion());
++        versions.put("users", usersGateway.getVersion());
++        versions.put("appointments", appointmentsGateway.getVersion());
++
++        return ResponseEntity.ok(versions);
++    }
++}
+Index: api/src/main/proto/version.proto
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/api/src/main/proto/version.proto b/api/src/main/proto/version.proto
+new file mode 100644
+--- /dev/null	(date 1786893051070)
++++ b/api/src/main/proto/version.proto	(date 1786893051070)
+@@ -0,0 +1,13 @@
++syntax = "proto3";
++
++package com.medrec.grpc.version;
++
++service VersionService {
++  rpc GetVersion (GetVersionRequest) returns (GetVersionResponse);
++}
++
++message GetVersionRequest {}
++
++message GetVersionResponse {
++  string version = 1;
++}

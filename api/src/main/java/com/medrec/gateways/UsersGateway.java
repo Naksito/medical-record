@@ -8,6 +8,8 @@ import com.medrec.grpc.users.DoctorServiceGrpc;
 import com.medrec.grpc.users.PatientServiceGrpc;
 import com.medrec.grpc.users.SpecialtyServiceGrpc;
 import com.medrec.grpc.users.Users;
+import com.medrec.grpc.version.Version;
+import com.medrec.grpc.version.VersionServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
@@ -27,6 +29,7 @@ public class UsersGateway {
     private final DoctorServiceGrpc.DoctorServiceBlockingStub doctorService;
     private final PatientServiceGrpc.PatientServiceBlockingStub patientService;
     private final SpecialtyServiceGrpc.SpecialtyServiceBlockingStub specialtyService;
+    private final VersionServiceGrpc.VersionServiceBlockingStub versionService;
 
     public UsersGateway() {
         int port = Integer.parseInt(System.getenv("USERS_PORT"));
@@ -43,6 +46,7 @@ public class UsersGateway {
         doctorService = DoctorServiceGrpc.newBlockingStub(channel);
         patientService = PatientServiceGrpc.newBlockingStub(channel);
         specialtyService = SpecialtyServiceGrpc.newBlockingStub(channel);
+        versionService = VersionServiceGrpc.newBlockingStub(channel);
     }
 
     public Users.Doctor createDoctor(Users.CreateDoctorRequest doctor) throws RuntimeException {
@@ -215,6 +219,10 @@ public class UsersGateway {
             this.logger.info("Could not find patients with ids " + ids);
             throw e;
         }
+    }
+
+    public String getVersion() {
+        return versionService.getVersion(Version.GetVersionRequest.newBuilder().build()).getVersion();
     }
 
     @PreDestroy

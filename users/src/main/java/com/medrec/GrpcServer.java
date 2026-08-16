@@ -3,6 +3,7 @@ package com.medrec;
 import com.medrec.services.DoctorService;
 import com.medrec.services.PatientService;
 import com.medrec.services.SpecialtyService;
+import com.medrec.services.VersionService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.health.v1.HealthCheckResponse;
@@ -26,6 +27,7 @@ public class GrpcServer {
                 .addService(DoctorService.getInstance())
                 .addService(PatientService.getInstance())
                 .addService(SpecialtyService.getInstance())
+                .addService(VersionService.getInstance())
                 .addService(healthStatusManager.getHealthService())
                 .build();
 

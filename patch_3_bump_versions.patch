@@ -1,0 +1,29 @@
+Subject: [PATCH] Bump versions for all services.
+---
+Index: pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/pom.xml b/pom.xml
+--- a/pom.xml	(revision fa563b4e2472ecae04a96341efe00e2e69943be9)
++++ b/pom.xml	(date 1786895883901)
+@@ -13,12 +13,12 @@
+   <name>medical-record</name>
+ 
+   <properties>
+-    <revision>1.1.0</revision>
+-    <auth.version>1.0.0</auth.version>
+-    <users.version>1.0.0</users.version>
+-    <appointments.version>1.0.0</appointments.version>
+-    <api.version>1.0.0</api.version>
+-    <frontend.version>1.0.0</frontend.version>
++    <revision>2.0.0</revision>
++    <auth.version>2.0.0</auth.version>
++    <users.version>2.0.0</users.version>
++    <appointments.version>2.0.0</appointments.version>
++    <api.version>2.0.0</api.version>
++    <frontend.version>2.0.0</frontend.version>
+     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+     <maven.compiler.release>17</maven.compiler.release>
+ 
