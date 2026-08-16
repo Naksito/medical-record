@@ -1,0 +1,13 @@
+.versions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  padding-bottom: 0.75rem;
+}
+
+.version-entry {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.8rem;
+  color: #6c757d;
+  letter-spacing: 0.03em;
+}

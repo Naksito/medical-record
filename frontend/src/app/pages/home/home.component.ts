@@ -1,8 +1,9 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {Router} from '@angular/router';
 import {NgIf} from '@angular/common';
 import {LocalStorageService} from '../../services/local-storage.service';
 import {AuthService} from '../../services/auth.service';
+import {StatusService, ServiceVersions} from '../../services/status.service';
 
 @Component({
   selector: 'app-home',
@@ -12,16 +13,24 @@ import {AuthService} from '../../services/auth.service';
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
   currentUser: string = '';
+  versions: ServiceVersions | null = null;
 
   constructor(
     private router: Router,
     private authService: AuthService,
     private localStorageService: LocalStorageService,
+    private statusService: StatusService,
   ) {
     const name = this.localStorageService.getCurrentUser();
     this.currentUser = name ? name : 'User';
+  }
+
+  ngOnInit(): void {
+    this.statusService.getVersions()
+      .then(v => this.versions = v)
+      .catch(() => this.versions = null);
   }
 
   redirectToLogIn(): void {
