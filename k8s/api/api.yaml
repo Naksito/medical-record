@@ -32,6 +32,8 @@ spec:
               memory: "256Mi"
               cpu: "250m"
           env:
+            - name: SERVICE_VERSION
+              value: "__API_TAG__"
             - name: API_GATEWAY_PORT
               value: "8080"
             - name: USERS_PORT

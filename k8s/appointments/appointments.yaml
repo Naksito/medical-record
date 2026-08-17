@@ -32,6 +32,8 @@ spec:
             memory: "256Mi"
             cpu: "250m"
         env:
+          - name: SERVICE_VERSION
+            value: "__APPOINTMENTS_TAG__"
           - name: APPOINTMENTS_PORT
             value: "9092"
           - name: USERS_PORT

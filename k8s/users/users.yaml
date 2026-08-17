@@ -32,6 +32,8 @@ spec:
             memory: "256Mi"
             cpu: "250m"
         env:
+          - name: SERVICE_VERSION
+            value: "__USERS_TAG__"
           - name: USERS_PORT
             value: "9090"
           - name: DB_URL
