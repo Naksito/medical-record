@@ -1,11 +1,12 @@
 import {Component} from '@angular/core';
+import {NgIf} from '@angular/common';
 import {Router} from '@angular/router';
 import {LocalStorageService} from '../../services/local-storage.service';
 import {AuthService} from '../../services/auth.service';
 
 @Component({
   selector: 'app-home',
-  imports: [],
+  imports: [NgIf],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
