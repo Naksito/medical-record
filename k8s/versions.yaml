@@ -13,4 +13,4 @@ services:
     tag: 2.0.0
   frontend:
     image: naksito03/frontend-service
-    tag: 1.1.0
+    tag: 2.0.1
