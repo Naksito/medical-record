@@ -1,5 +1,4 @@
 import {Component} from '@angular/core';
-import {NgIf} from '@angular/common';
 import {ReactiveFormsModule} from '@angular/forms';
 import {RouterOutlet} from '@angular/router';
 import {AgGridModule} from 'ag-grid-angular';
@@ -10,14 +9,13 @@ import {StatusService, ServiceVersions} from './services/status.service';
   standalone: true,
   imports: [
     RouterOutlet,
-    NgIf,
     ReactiveFormsModule,
     AgGridModule
   ],
   template: `
     <div class="app-container">
         <router-outlet></router-outlet>
-        <footer class="version-bar" *ngIf="versions">
+        <footer class="version-bar">
           <span>API v{{ versions.api }}</span>
           <span>Auth v{{ versions.auth }}</span>
           <span>Users v{{ versions.users }}</span>
@@ -41,11 +39,17 @@ import {StatusService, ServiceVersions} from './services/status.service';
 })
 export class AppComponent {
   title = 'Medical Records App';
-  versions: ServiceVersions | null = null;
+  versions: ServiceVersions = {
+    api: 'unknown',
+    auth: 'unknown',
+    users: 'unknown',
+    appointments: 'unknown',
+    frontend: 'unknown'
+  };
 
   constructor(private readonly statusService: StatusService) {
     this.statusService.getVersions()
       .then(versions => this.versions = versions)
-      .catch(() => this.versions = null);
+      .catch(() => undefined);
   }
 }
