@@ -8,6 +8,11 @@ export interface ServiceVersions {
   auth: string;
   users: string;
   appointments: string;
+  frontend: string;
+}
+
+interface FrontendVersion {
+  version: string;
 }
 
 @Injectable({
@@ -19,6 +24,12 @@ export class StatusService {
   constructor(private httpClient: HttpClient) {}
 
   public async getVersions(): Promise<ServiceVersions> {
-    return await firstValueFrom(this.httpClient.get<ServiceVersions>(this.statusUrl));
+    const [serviceVersions, frontendVersion] = await Promise.all([
+      firstValueFrom(this.httpClient.get<Omit<ServiceVersions, 'frontend'>>(this.statusUrl)),
+      firstValueFrom(this.httpClient.get<FrontendVersion>('/version.json', {
+        headers: {'Cache-Control': 'no-cache'}
+      }))
+    ]);
+    return {...serviceVersions, frontend: frontendVersion.version};
   }
 }

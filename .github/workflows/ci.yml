@@ -93,6 +93,10 @@ jobs:
 
       - name: Build and push frontend image
         run: |
-          docker build -t naksito03/frontend-service:${{ steps.svc_versions.outputs.frontend_version }} -t naksito03/frontend-service:latest ./frontend
+          docker build \
+            --build-arg SERVICE_VERSION=${{ steps.svc_versions.outputs.frontend_version }} \
+            -t naksito03/frontend-service:${{ steps.svc_versions.outputs.frontend_version }} \
+            -t naksito03/frontend-service:latest \
+            ./frontend
           docker push naksito03/frontend-service:${{ steps.svc_versions.outputs.frontend_version }}
           docker push naksito03/frontend-service:latest
