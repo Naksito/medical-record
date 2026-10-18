@@ -14,7 +14,7 @@
 
   <properties>
     <revision>2.0.0</revision>
-    <auth.version>2.0.0</auth.version>
+    <auth.version>2.0.1</auth.version>
     <users.version>2.0.0</users.version>
     <appointments.version>2.0.1</appointments.version>
     <api.version>2.0.0</api.version>
