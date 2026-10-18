@@ -2,15 +2,13 @@ name: Deploy to Kubernetes
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - 'k8s/versions.yaml'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      KUBECONFIG: ${{ github.workspace }}/.kube/config
+      TF_VAR_kubeconfig_path: ${{ github.workspace }}/.kube/config
 
     steps:
       - name: Checkout code
@@ -24,49 +22,50 @@ jobs:
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
       - name: Configure kubeconfig
         id: kubeconfig
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
-          chmod 600 ~/.kube/config
-          if ! kubectl config view --kubeconfig=$HOME/.kube/config >/dev/null 2>&1; then
+          mkdir -p "$(dirname "$KUBECONFIG")"
+          printf '%s' "$KUBE_CONFIG" > "$KUBECONFIG"
+          chmod 600 "$KUBECONFIG"
+          if ! kubectl config view >/dev/null 2>&1; then
             echo "The provided kubeconfig is invalid or empty. Aborting deployment."
-            echo "kube_ready=false" >> $GITHUB_OUTPUT
+            echo "kube_ready=false" >> "$GITHUB_OUTPUT"
             exit 1
           fi
-          if ! kubectl config current-context --kubeconfig=$HOME/.kube/config >/dev/null 2>&1; then
+          if ! kubectl config current-context >/dev/null 2>&1; then
             echo "The provided kubeconfig does not define a current context. Aborting deployment."
-            echo "kube_ready=false" >> $GITHUB_OUTPUT
+            echo "kube_ready=false" >> "$GITHUB_OUTPUT"
             exit 1
           fi
-          echo "kube_ready=true" >> $GITHUB_OUTPUT
+          echo "kube_ready=true" >> "$GITHUB_OUTPUT"
 
       - name: Import existing Kubernetes resources
         env:
           TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
           TF_VAR_users_db_password: ${{ secrets.USERS_DB_PASSWORD }}
           TF_VAR_appointments_db_password: ${{ secrets.APPOINTMENTS_DB_PASSWORD }}
-          TF_VAR_kubeconfig_path: ~/.kube/config
         run: |
           terraform -chdir=terraform init -upgrade
-          terraform -chdir=terraform import -var="kubeconfig_path=$HOME/.kube/config" -var="jwt_secret=${{ secrets.JWT_SECRET }}" -var="users_db_password=${{ secrets.USERS_DB_PASSWORD }}" -var="appointments_db_password=${{ secrets.APPOINTMENTS_DB_PASSWORD }}" kubernetes_namespace_v1.medical_record medical-record || true
-          terraform -chdir=terraform import -var="kubeconfig_path=$HOME/.kube/config" -var="jwt_secret=${{ secrets.JWT_SECRET }}" -var="users_db_password=${{ secrets.USERS_DB_PASSWORD }}" -var="appointments_db_password=${{ secrets.APPOINTMENTS_DB_PASSWORD }}" kubernetes_secret_v1.auth_secret medical-record/auth-secret || true
-          terraform -chdir=terraform import -var="kubeconfig_path=$HOME/.kube/config" -var="jwt_secret=${{ secrets.JWT_SECRET }}" -var="users_db_password=${{ secrets.USERS_DB_PASSWORD }}" -var="appointments_db_password=${{ secrets.APPOINTMENTS_DB_PASSWORD }}" kubernetes_secret_v1.users_secret medical-record/users-secret || true
-          terraform -chdir=terraform import -var="kubeconfig_path=$HOME/.kube/config" -var="jwt_secret=${{ secrets.JWT_SECRET }}" -var="users_db_password=${{ secrets.USERS_DB_PASSWORD }}" -var="appointments_db_password=${{ secrets.APPOINTMENTS_DB_PASSWORD }}" kubernetes_secret_v1.appointments_secret medical-record/appointments-secret || true
+          terraform -chdir=terraform import kubernetes_namespace_v1.medical_record medical-record || true
+          terraform -chdir=terraform import kubernetes_secret_v1.auth_secret medical-record/auth-secret || true
+          terraform -chdir=terraform import kubernetes_secret_v1.users_secret medical-record/users-secret || true
+          terraform -chdir=terraform import kubernetes_secret_v1.appointments_secret medical-record/appointments-secret || true
 
       - name: Provision Kubernetes resources with Terraform
         env:
           TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
           TF_VAR_users_db_password: ${{ secrets.USERS_DB_PASSWORD }}
           TF_VAR_appointments_db_password: ${{ secrets.APPOINTMENTS_DB_PASSWORD }}
-          TF_VAR_kubeconfig_path: ~/.kube/config
         run: |
-          terraform -chdir=terraform apply -auto-approve \
-            -var="kubeconfig_path=$HOME/.kube/config" \
-            -var="jwt_secret=${{ secrets.JWT_SECRET }}" \
-            -var="users_db_password=${{ secrets.USERS_DB_PASSWORD }}" \
-            -var="appointments_db_password=${{ secrets.APPOINTMENTS_DB_PASSWORD }}"
+          terraform -chdir=terraform apply -auto-approve
 
       - name: Deploy Kubernetes manifests
         run: |
@@ -83,12 +82,12 @@ jobs:
         run: |
           for deployment in postgres auth-service users-service appointments-service api-service frontend-service; do
             echo "Waiting for deployment/$deployment to become available..."
-            if ! kubectl rollout status deployment/$deployment -n medical-record --timeout=600s; then
+            if ! kubectl rollout status "deployment/$deployment" -n medical-record --timeout=600s; then
               echo "$deployment rollout failed. Showing diagnostics..."
               kubectl get pods -n medical-record -o wide || true
-              kubectl describe deployment $deployment -n medical-record || true
-              kubectl describe pod -n medical-record -l app=$deployment || true
-              kubectl logs -n medical-record -l app=$deployment --all-containers=true || true
+              kubectl describe deployment "$deployment" -n medical-record || true
+              kubectl describe pod -n medical-record -l "app=$deployment" || true
+              kubectl logs -n medical-record -l "app=$deployment" --all-containers=true || true
               exit 1
             fi
           done

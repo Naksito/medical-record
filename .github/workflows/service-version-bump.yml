@@ -1,0 +1,59 @@
+name: Propose Service Version Bump
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'api/**'
+      - 'auth/**'
+      - 'users/**'
+      - 'appointments/**'
+      - 'frontend/**'
+      - 'pom.xml'
+      - 'scripts/bump_service_versions.py'
+      - 'scripts/select_release_services.py'
+      - 'scripts/tests/**'
+      - '.github/workflows/service-version-bump.yml'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  propose-version-bump:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Test version automation
+        run: python -m unittest discover -s scripts/tests -v
+
+      - name: Bump versions for changed services
+        run: python scripts/bump_service_versions.py --base-ref "${{ github.event.before }}"
+
+      - name: Open version update pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: main
+          branch: automation/service-version-bumps
+          delete-branch: true
+          add-paths: |
+            pom.xml
+            k8s/versions.yaml
+          commit-message: "chore: bump versions for changed services"
+          title: "chore: bump versions for changed services"
+          body: |
+            This pull request updates service patch versions and deployment image tags for service directories changed on `main`.
+
+            Review the version changes, then merge to trigger image publication and deployment.

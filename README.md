@@ -273,34 +273,22 @@ kubectl rollout status deployment/frontend-service -n medical-record --timeout=3
 
 ## GitHub Actions Pipeline
 
-The primary workflow is `.github/workflows/ci.yml`. It runs on pushes to `main` and through manual dispatch.
+The release process uses three workflows. `.github/workflows/service-version-bump.yml` reacts to service-directory changes (and direct service-version edits in the root POM), then opens or updates a pull request for the version metadata. `.github/workflows/ci.yml` runs after version metadata is merged to `main`, builds the application, publishes only services whose POM version or manifest tag changed, and then deploys after publishing succeeds. `.github/workflows/deploy.yml` remains available for manual redeploys.
 
 ### Pipeline stages
 
-1. Check out the repository.
-2. Install Java 17.
-3. Install Terraform.
-4. Install kubectl.
-5. Cache Maven dependencies.
-6. Run `mvn clean package -DskipTests`.
-7. Extract `revision` and every service-specific version.
-8. Log in to Docker Hub.
-9. Build and push the auth image.
-10. Build and push the API image.
-11. Build and push the users image.
-12. Build and push the appointments image.
-13. Build and push the frontend image.
-14. Update `k8s/versions.yaml`.
-15. Commit the manifest update.
-16. Configure kubeconfig from GitHub Secrets.
-17. Import existing Terraform resources.
-18. Apply Terraform namespace and secrets.
-19. Render Kubernetes manifests.
-20. Apply the manifests to the cluster.
-21. Wait for every Deployment rollout.
-22. Print pod, deployment, and container diagnostics when a rollout fails.
+1. A push changing files under a service directory starts `service-version-bump.yml`.
+2. The workflow runs unit tests for the version automation.
+3. It increments the changed service's patch version, unless a higher version was explicitly selected in the POM.
+4. It updates the matching service tag in `k8s/versions.yaml` and opens a pull request.
+5. Review and merge that pull request to approve the release version.
+6. The merge triggers `ci.yml` because the deployment manifest changed.
+7. CI builds all Maven modules, reads each service version, and identifies which image tags changed.
+8. CI builds and pushes only the affected service images.
+9. A dependent deployment job starts only after image publishing succeeds.
+10. The deployment job configures kubeconfig, imports and applies Terraform resources, renders and applies the Kubernetes manifests, and verifies all rollouts.
 
-The separate `deploy.yml` workflow can deploy when `k8s/versions.yaml` changes. The `dry-run.yml` workflow validates version extraction and manifest rendering without changing the cluster.
+The `ci.yml` workflow can also be manually dispatched; that path selects all services for image publication and then runs deployment. The separate `deploy.yml` workflow is retained for a manual redeploy without rebuilding images. The `dry-run.yml` workflow validates version extraction and manifest rendering without changing the cluster.
 
 ### Required GitHub Secrets
 
@@ -315,30 +303,29 @@ APPOINTMENTS_DB_PASSWORD
 
 `KUBE_CONFIG` must contain a valid kubeconfig with a current context and access to the target cluster. `JWT_SECRET` must meet the application's minimum length requirement.
 
+The repository must allow GitHub Actions to create pull requests. Enable **Settings > Actions > General > Workflow permissions > Allow GitHub Actions to create and approve pull requests**. The version-bump workflow uses `GITHUB_TOKEN` with `contents: write` and `pull-requests: write` permissions.
+
 ## Release Procedure
 
 ### Service release
 
-1. Change the relevant property in the root `pom.xml`.
-2. Use a new semantic version, for example `2.0.3`.
-3. Review the Dockerfile and service source changes.
-4. Commit and push to `main`.
-5. GitHub Actions evaluates the new property.
-6. CI builds and publishes the service image.
-7. CI updates `k8s/versions.yaml`.
-8. Kubernetes receives the rendered manifest.
-9. The Deployment replaces the old workload.
-10. Rollout verification confirms readiness.
+1. Commit and push a service change to `main`.
+2. `service-version-bump.yml` detects the changed service and proposes a patch-version increase in a pull request.
+3. Review the proposed `pom.xml` and `k8s/versions.yaml` changes. If desired, set a higher semantic version in the POM; the automation preserves it.
+4. Merge the version pull request.
+5. CI builds and publishes only images whose version changed.
+6. The dependent deployment job applies the new manifest after image publishing succeeds.
+7. Confirm the rollout and runtime version.
 
 ### Frontend-only release
 
-Change only:
+For a frontend-only source change, push the frontend change to `main`. The automation proposes the next patch version. Alternatively, set a higher version explicitly in the root POM, for example:
 
 ```xml
 <frontend.version>2.0.3</frontend.version>
 ```
 
-This should create `naksito03/frontend-service:2.0.3` without changing the backend image versions. After deployment, verify:
+After the version PR is merged, the pipeline should create `naksito03/frontend-service:2.0.3` without publishing new backend image tags. After deployment, verify:
 
 ```text
 http://<node-ip>:32000/version.json
