@@ -1,7 +1,7 @@
 services:
   auth:
     image: naksito03/auth-service
-    tag: 2.0.0
+    tag: 2.0.1
   users:
     image: naksito03/users-service
     tag: 2.0.0
