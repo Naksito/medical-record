@@ -40,3 +40,4 @@ message AuthorizationRequest {
 message AuthorizationResponse {
   bool isTokenAuthorized = 1;
 }
+//test
