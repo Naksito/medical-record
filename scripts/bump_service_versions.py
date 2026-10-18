@@ -91,6 +91,16 @@ def git_show(repo_root, ref, path):
     ).stdout
 
 
+def read_text_preserving_newlines(path):
+    with path.open("r", encoding="utf-8", newline="") as stream:
+        return stream.read()
+
+
+def write_text_preserving_newlines(path, text):
+    with path.open("w", encoding="utf-8", newline="") as stream:
+        stream.write(text)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Increment patch versions for services changed in a push."
@@ -112,8 +122,8 @@ def main():
 
     pom_path = repo_root / "pom.xml"
     manifest_path = repo_root / "k8s" / "versions.yaml"
-    pom_text = pom_path.read_text(encoding="utf-8")
-    manifest_text = manifest_path.read_text(encoding="utf-8")
+    pom_text = read_text_preserving_newlines(pom_path)
+    manifest_text = read_text_preserving_newlines(manifest_path)
     for service, (_, property_name) in SERVICES.items():
         if get_property(base_pom, property_name) != get_property(pom_text, property_name):
             services.add(service)
@@ -132,8 +142,8 @@ def main():
         manifest_text = set_manifest_tag(manifest_text, service, next_version)
         print(f"{service}: {previous} -> {next_version}")
 
-    pom_path.write_text(pom_text, encoding="utf-8", newline="")
-    manifest_path.write_text(manifest_text, encoding="utf-8", newline="")
+    write_text_preserving_newlines(pom_path, pom_text)
+    write_text_preserving_newlines(manifest_path, manifest_text)
     return 0
 
 

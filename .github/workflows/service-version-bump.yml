@@ -11,10 +11,6 @@ on:
       - 'appointments/**'
       - 'frontend/**'
       - 'pom.xml'
-      - 'scripts/bump_service_versions.py'
-      - 'scripts/select_release_services.py'
-      - 'scripts/tests/**'
-      - '.github/workflows/service-version-bump.yml'
 
 permissions:
   contents: write
