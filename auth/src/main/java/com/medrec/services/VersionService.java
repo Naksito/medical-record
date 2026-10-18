@@ -19,7 +19,6 @@ public class VersionService extends VersionServiceGrpc.VersionServiceImplBase {
 
     @Override
     public void getVersion(GetVersionRequest request, StreamObserver<GetVersionResponse> responseObserver) {
-        // The Docker build supplies this version for the API status response.
         String version = System.getenv("SERVICE_VERSION");
         if (version == null || version.isBlank()) {
             version = "unknown";
