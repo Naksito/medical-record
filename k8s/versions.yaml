@@ -10,7 +10,7 @@ services:
     tag: 2.0.1
   api:
     image: naksito03/api-service
-    tag: 2.0.0
+    tag: 2.0.1
   frontend:
     image: naksito03/frontend-service
     tag: 2.0.2

@@ -17,7 +17,7 @@
     <auth.version>2.0.1</auth.version>
     <users.version>2.0.0</users.version>
     <appointments.version>2.0.1</appointments.version>
-    <api.version>2.0.0</api.version>
+    <api.version>2.0.1</api.version>
     <frontend.version>2.0.2</frontend.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
