@@ -46,9 +46,15 @@ spec:
             - name: USERS_HOST
               value: "users-service"
             - name: ADMIN_EMAIL
-              value: "admin"
+              valueFrom:
+                secretKeyRef:
+                  name: auth-secret
+                  key: ADMIN_EMAIL
             - name: ADMIN_PASSWORD
-              value: "adminpass"
+              valueFrom:
+                secretKeyRef:
+                  name: auth-secret
+                  key: ADMIN_PASSWORD
           livenessProbe:
             grpc:
               port: 9091

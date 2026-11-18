@@ -10,12 +10,24 @@ variable "jwt_secret" {
   sensitive   = true
 }
 
-variable "users_db_password" {
-  type      = string
-  sensitive = true
+variable "admin_email" {
+  description = "Initial administrator email"
+  type        = string
 }
 
-variable "appointments_db_password" {
-  type      = string
-  sensitive = true
+variable "admin_password" {
+  description = "Initial administrator password"
+  type        = string
+  sensitive   = true
+}
+
+variable "postgres_user" {
+  description = "PostgreSQL application user"
+  type        = string
+}
+
+variable "users_db_password" {
+  description = "Shared PostgreSQL password used by both application services"
+  type        = string
+  sensitive   = true
 }

@@ -26,7 +26,9 @@ resource "kubernetes_secret_v1" "auth_secret" {
   }
 
   data = {
-    JWT_SECRET = base64encode(var.jwt_secret)
+    JWT_SECRET     = var.jwt_secret
+    ADMIN_EMAIL    = var.admin_email
+    ADMIN_PASSWORD = var.admin_password
   }
 
   type = "Opaque"
@@ -39,7 +41,9 @@ resource "kubernetes_secret_v1" "users_secret" {
   }
 
   data = {
-    USERS_DB_PASSWORD = base64encode(var.users_db_password)
+    POSTGRES_USER     = var.postgres_user
+    POSTGRES_PASSWORD = var.users_db_password
+    USERS_DB_PASSWORD = var.users_db_password
   }
 
   type = "Opaque"
@@ -52,7 +56,7 @@ resource "kubernetes_secret_v1" "appointments_secret" {
   }
 
   data = {
-    APPOINTMENTS_DB_PASSWORD = base64encode(var.appointments_db_password)
+    APPOINTMENTS_DB_PASSWORD = var.users_db_password
   }
 
   type = "Opaque"

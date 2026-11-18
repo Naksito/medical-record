@@ -37,7 +37,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres
+          image: postgres:18.4-alpine3.22
           ports:
             - containerPort: 5432
           resources:
@@ -49,9 +49,15 @@ spec:
               cpu: "400m"
           env:
             - name: POSTGRES_USER
-              value: "admin"
+              valueFrom:
+                secretKeyRef:
+                  name: users-secret
+                  key: POSTGRES_USER
             - name: POSTGRES_PASSWORD
-              value: "admin"
+              valueFrom:
+                secretKeyRef:
+                  name: users-secret
+                  key: POSTGRES_PASSWORD
             - name: PGDATA
               value: "/pgdata/data"
           volumeMounts:
@@ -78,5 +84,4 @@ spec:
   ports:
     - port: 5432
       targetPort: 5432
-      nodePort: 30001
-  type: NodePort
+  type: ClusterIP

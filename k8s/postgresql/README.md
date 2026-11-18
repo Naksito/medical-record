@@ -8,9 +8,8 @@ The resources that the file creates are:
   - `Deployment` - For describing how Kubernetes should create the Pod.
   - `Service` - For describing how Kubernetes should handle the traffic to the Pod.
 
-In the `Deployments` you may also see that the PostgreSQL environment variables are hardcoded. Of course, this is a bad
-practice and is only done here for convenience and exhaustiveness of the manifest, so that it will apply all needed
-resources without the need of additional configuration.
+The PostgreSQL username and password are read from `users-secret`, which Terraform provisions. Its Service is
+`ClusterIP`, so PostgreSQL is reachable only by services inside the cluster; external access is not required.
 
 This manifest file requires `kubectl` to be installed, as well as configured and connected to a Kubernetes cluster. Also,
 the cluster needs to have the `medical-record` namespace applied beforehand.

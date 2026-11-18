@@ -39,9 +39,15 @@ spec:
           - name: DB_URL
             value: "jdbc:postgresql://postgres:5432/users"
           - name: DB_USERNAME
-            value: "admin"
+            valueFrom:
+              secretKeyRef:
+                name: users-secret
+                key: POSTGRES_USER
           - name: DB_PASSWORD
-            value: "admin"
+            valueFrom:
+              secretKeyRef:
+                name: users-secret
+                key: USERS_DB_PASSWORD
         livenessProbe:
           grpc:
             port: 9090

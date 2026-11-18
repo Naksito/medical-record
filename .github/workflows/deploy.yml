@@ -50,8 +50,10 @@ jobs:
       - name: Import existing Kubernetes resources
         env:
           TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+          TF_VAR_admin_email: ${{ secrets.ADMIN_EMAIL }}
+          TF_VAR_admin_password: ${{ secrets.ADMIN_PASSWORD }}
+          TF_VAR_postgres_user: ${{ secrets.POSTGRES_USER }}
           TF_VAR_users_db_password: ${{ secrets.USERS_DB_PASSWORD }}
-          TF_VAR_appointments_db_password: ${{ secrets.APPOINTMENTS_DB_PASSWORD }}
         run: |
           terraform -chdir=terraform init -upgrade
           terraform -chdir=terraform import kubernetes_namespace_v1.medical_record medical-record || true
@@ -62,8 +64,10 @@ jobs:
       - name: Provision Kubernetes resources with Terraform
         env:
           TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+          TF_VAR_admin_email: ${{ secrets.ADMIN_EMAIL }}
+          TF_VAR_admin_password: ${{ secrets.ADMIN_PASSWORD }}
+          TF_VAR_postgres_user: ${{ secrets.POSTGRES_USER }}
           TF_VAR_users_db_password: ${{ secrets.USERS_DB_PASSWORD }}
-          TF_VAR_appointments_db_password: ${{ secrets.APPOINTMENTS_DB_PASSWORD }}
         run: |
           terraform -chdir=terraform apply -auto-approve
 

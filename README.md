@@ -179,6 +179,7 @@ The manifest is the bridge between image publication and Kubernetes deployment. 
 ## Docker Image Construction
 
 Each deployable component has a Dockerfile. The Java images copy the Maven-produced JAR into a small runtime image. The gRPC services use `jlink` to create a reduced Java runtime. The frontend image builds Angular files and serves them through Nginx.
+All Docker base images are pinned to explicit versions. PostgreSQL is pinned to 18.4, matching the major/minor version currently running with the persisted database volume.
 
 The backend images receive their version at build time:
 
@@ -224,11 +225,12 @@ The Docker Hub login uses `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` stored as G
 Terraform is used for the Kubernetes resources that are infrastructure-level concerns:
 
 - the `medical-record` namespace
-- `auth-secret` containing `JWT_SECRET`
-- `users-secret` containing the users database password
-- `appointments-secret` containing the appointments database password
+- `auth-secret` containing `JWT_SECRET` and the initial administrator credentials
+- `users-secret` containing the PostgreSQL username and shared password
+- `appointments-secret` containing the appointments service's database password
 
 The Kubernetes provider reads the kubeconfig path from `terraform/variables.tf`. Sensitive variables are marked `sensitive` and supplied by CI.
+PostgreSQL uses one login for both application databases, so `USERS_DB_PASSWORD` is stored in both database secrets. Terraform's Kubernetes provider accepts plaintext values in `data` and performs the Kubernetes Secret encoding itself; do not call `base64encode` on these values.
 
 The workflow imports existing resources before applying Terraform. This is important because the target cluster may already contain the namespace and secrets. Importing makes repeated workflow runs idempotent instead of failing because a resource already exists.
 
@@ -271,6 +273,20 @@ kubectl logs -n medical-record <pod-name>
 kubectl rollout status deployment/frontend-service -n medical-record --timeout=300s
 ```
 
+To verify Kubernetes Secret encoding at runtime, check the environment values in the PostgreSQL and application pods:
+
+```bash
+kubectl exec -n medical-record deployment/postgres -- env | grep -E '^POSTGRES_(USER|PASSWORD)='
+kubectl exec -n medical-record deployment/users-service -- env | grep -E '^DB_(USERNAME|PASSWORD)='
+kubectl exec -n medical-record deployment/appointments-service -- env | grep -E '^DB_(USERNAME|PASSWORD)='
+kubectl exec -n medical-record deployment/auth-service -- env | grep -E '^ADMIN_(EMAIL|PASSWORD)='
+kubectl exec -n medical-record deployment/auth-service -- env | grep -E '^JWT_SECRET='
+```
+
+The output should contain the original secret values as plain environment-variable values, not base64 text. The Kubernetes provider encodes the values once for storage, and Kubernetes decodes them when injecting environment variables. These commands print credentials: run them only in a trusted terminal and do not save or share their output.
+
+Before this change, the running `auth-service` pod's `JWT_SECRET` environment value was base64-formatted text, consistent with the previous `base64encode` call causing an extra encoding layer. Terraform now passes the original string to the provider, so after applying the updated secrets and restarting the pods the environment value should match the original input instead.
+
 ## GitHub Actions Pipeline
 
 The release process uses three workflows. `.github/workflows/service-version-bump.yml` reacts to service-directory changes (and direct service-version edits in the root POM), then opens or updates a pull request for the version metadata. `.github/workflows/ci.yml` runs after version metadata is merged to `main`, builds the application, publishes only services whose POM version or manifest tag changed, and then deploys after publishing succeeds. `.github/workflows/deploy.yml` remains available for manual redeploys.
@@ -297,11 +313,13 @@ DOCKERHUB_USERNAME
 DOCKERHUB_TOKEN
 KUBE_CONFIG
 JWT_SECRET
+ADMIN_EMAIL
+ADMIN_PASSWORD
+POSTGRES_USER
 USERS_DB_PASSWORD
-APPOINTMENTS_DB_PASSWORD
 ```
 
-`KUBE_CONFIG` must contain a valid kubeconfig with a current context and access to the target cluster. `JWT_SECRET` must meet the application's minimum length requirement.
+`KUBE_CONFIG` must contain a valid kubeconfig with a current context and access to the target cluster. `JWT_SECRET` must meet the application's minimum length requirement. `USERS_DB_PASSWORD` is the shared PostgreSQL password used by both services. To preserve the existing cluster credentials, set `POSTGRES_USER` and `USERS_DB_PASSWORD` to `admin`, and set `ADMIN_EMAIL` and `ADMIN_PASSWORD` to `admin` and `adminpass`, respectively. PostgreSQL only applies `POSTGRES_USER` and `POSTGRES_PASSWORD` when initializing an empty data directory.
 
 The repository must allow GitHub Actions to create pull requests. Enable **Settings > Actions > General > Workflow permissions > Allow GitHub Actions to create and approve pull requests**. The version-bump workflow uses `GITHUB_TOKEN` with `contents: write` and `pull-requests: write` permissions.
 

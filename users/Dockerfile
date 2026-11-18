@@ -1,7 +1,7 @@
 # This step takes the built .jar file of the service and creates a custom JRE using jlink
 
 # We need an Alpine based image to build the JRE
-FROM amazoncorretto:17-alpine AS packager
+FROM amazoncorretto:17.0.15-alpine3.21 AS packager
 
 WORKDIR /opt
 
@@ -20,7 +20,7 @@ RUN jlink \
 --add-modules $(cat deps.txt)
 
 # Alpine is by far the best option to make the image size as small as possible
-FROM alpine:latest
+FROM alpine:3.21.3
 
 ARG SERVICE_VERSION=unknown
 ENV SERVICE_VERSION=${SERVICE_VERSION}
